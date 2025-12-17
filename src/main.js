@@ -9,6 +9,7 @@ let hudHealth;
 let hudAmmo;
 let hudTables;
 let hudFloor;
+let hudScore;
 let faceImg;
 let animationFrameId;
 let lastTime = 0;
@@ -24,6 +25,7 @@ function initGame() {
         hudAmmo = document.getElementById('hud-ammo');
         hudTables = document.getElementById('hud-tables');
         hudFloor = document.getElementById('hud-floor');
+        hudScore = document.getElementById('hud-score');
         faceImg = document.getElementById('face-img');
 
         initInput();
@@ -213,6 +215,7 @@ function updateHUD() {
     hudHealth.innerText = Math.floor(player.health) + "%";
     hudAmmo.innerText = player.ammo;
     hudTables.innerText = player.tables + "/" + requiredTables;
+    if (hudScore) hudScore.innerText = player.score.toLocaleString();
 
     // Green when complete
     if (player.tables >= requiredTables) {

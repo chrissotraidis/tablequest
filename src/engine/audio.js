@@ -776,6 +776,47 @@ function playSound(type) {
         mkNote(1174, 0.05, 0.1);
         mkNote(1760, 0.1, 0.2);
 
+    } else if (type === 'money') {
+        // Cha-ching! Cash register / coin sound
+        // High metallic ping (coin drop)
+        const mkCoin = (f, t, d) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(masterGain);
+            gain.connect(reverbNode);
+
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(f, now + t);
+            osc.frequency.exponentialRampToValueAtTime(f * 0.8, now + t + d);
+
+            gain.gain.setValueAtTime(0.2, now + t);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + t + d);
+
+            osc.start(now + t);
+            osc.stop(now + t + d + 0.1);
+        };
+
+        // Coin clink sounds (ascending metallic tones)
+        mkCoin(2400, 0, 0.08);
+        mkCoin(3200, 0.05, 0.08);
+        mkCoin(4000, 0.1, 0.1);
+
+        // Cash register "ding" (bell sound)
+        const bell = audioCtx.createOscillator();
+        const bellGain = audioCtx.createGain();
+        bell.connect(bellGain);
+        bellGain.connect(masterGain);
+        bellGain.connect(reverbNode);
+
+        bell.type = 'sine';
+        bell.frequency.setValueAtTime(1318.5, now + 0.15); // E6 note
+        bellGain.gain.setValueAtTime(0.3, now + 0.15);
+        bellGain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+
+        bell.start(now + 0.15);
+        bell.stop(now + 0.5);
+
     } else if (type === 'door') {
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();

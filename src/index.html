@@ -495,6 +495,11 @@
             color: #ffcc66;
         }
 
+        .hud-stat.score .value {
+            color: #ffdd44;
+            font-size: 20px;
+        }
+
         #face-container {
             width: 50px;
             height: 50px;
@@ -691,8 +696,12 @@
                     </div>
                 </div>
 
-                <!-- Right Panel: Tables & Floor -->
+                <!-- Right Panel: Score, Tables & Floor -->
                 <div class="hud-right">
+                    <div class="hud-stat score">
+                        <span class="value" id="hud-score">0</span>
+                        <span class="label">SCORE</span>
+                    </div>
                     <div class="hud-stat tables">
                         <span class="value" id="hud-tables">0/3</span>
                         <span class="label">TABLES</span>

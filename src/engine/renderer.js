@@ -273,6 +273,8 @@ function drawSprites(viewHeight = SCREEN_HEIGHT) {
                 if (sprite.type === 'table') img = sprites['table'];
                 else if (sprite.type === 'ammo') img = sprites['ammo'];
                 else if (sprite.type === 'health') img = sprites['health'];
+                else if (sprite.type === 'money') img = sprites['money'];
+                else if (sprite.type === 'goldBar') img = sprites['goldBar'];
                 else if (sprite.type === 'weaponPickup') img = sprites['weaponPickup_' + sprite.weaponType];
                 else if (sprite.type === 'enemy') {
                     const suffix = (sprite.variant !== undefined) ? '_' + sprite.variant : '_0';

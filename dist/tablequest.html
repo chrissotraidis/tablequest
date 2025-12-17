@@ -495,6 +495,11 @@
             color: #ffcc66;
         }
 
+        .hud-stat.score .value {
+            color: #ffdd44;
+            font-size: 20px;
+        }
+
         #face-container {
             width: 50px;
             height: 50px;
@@ -691,8 +696,12 @@
                     </div>
                 </div>
 
-                <!-- Right Panel: Tables & Floor -->
+                <!-- Right Panel: Score, Tables & Floor -->
                 <div class="hud-right">
+                    <div class="hud-stat score">
+                        <span class="value" id="hud-score">0</span>
+                        <span class="label">SCORE</span>
+                    </div>
                     <div class="hud-stat tables">
                         <span class="value" id="hud-tables">0/3</span>
                         <span class="label">TABLES</span>
@@ -1727,6 +1736,47 @@ function playSound(type) {
         mkNote(1174, 0.05, 0.1);
         mkNote(1760, 0.1, 0.2);
 
+    } else if (type === 'money') {
+        // Cha-ching! Cash register / coin sound
+        // High metallic ping (coin drop)
+        const mkCoin = (f, t, d) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(masterGain);
+            gain.connect(reverbNode);
+
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(f, now + t);
+            osc.frequency.exponentialRampToValueAtTime(f * 0.8, now + t + d);
+
+            gain.gain.setValueAtTime(0.2, now + t);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + t + d);
+
+            osc.start(now + t);
+            osc.stop(now + t + d + 0.1);
+        };
+
+        // Coin clink sounds (ascending metallic tones)
+        mkCoin(2400, 0, 0.08);
+        mkCoin(3200, 0.05, 0.08);
+        mkCoin(4000, 0.1, 0.1);
+
+        // Cash register "ding" (bell sound)
+        const bell = audioCtx.createOscillator();
+        const bellGain = audioCtx.createGain();
+        bell.connect(bellGain);
+        bellGain.connect(masterGain);
+        bellGain.connect(reverbNode);
+
+        bell.type = 'sine';
+        bell.frequency.setValueAtTime(1318.5, now + 0.15); // E6 note
+        bellGain.gain.setValueAtTime(0.3, now + 0.15);
+        bellGain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+
+        bell.start(now + 0.15);
+        bell.stop(now + 0.5);
+
     } else if (type === 'door') {
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
@@ -2433,6 +2483,73 @@ createSprite('health', (ctx) => {
     ctx.fillText('+', 27, 45);
 });
 
+// Sprite: Table Money (Gold Coin Stack)
+createSprite('money', (ctx) => {
+    // Gold coin stack with $ symbol
+    ctx.fillStyle = '#d4af37'; // Gold base
+    ctx.beginPath();
+    ctx.ellipse(32, 48, 22, 8, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#c9a227'; // Darker middle coin
+    ctx.beginPath();
+    ctx.ellipse(32, 40, 20, 7, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#d4af37'; // Top coin
+    ctx.beginPath();
+    ctx.ellipse(32, 32, 18, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // $ symbol
+    ctx.fillStyle = '#8b7500';
+    ctx.font = 'bold 18px serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('$', 32, 38);
+    // Shine highlight
+    ctx.fillStyle = 'rgba(255, 255, 200, 0.4)';
+    ctx.beginPath();
+    ctx.ellipse(26, 28, 6, 3, -0.3, 0, Math.PI * 2);
+    ctx.fill();
+});
+
+// Sprite: Gold Bar (High Value Pickup)
+createSprite('goldBar', (ctx) => {
+    // Shiny gold ingot shape
+    ctx.fillStyle = '#d4af37'; // Gold
+
+    // 3D bar effect - top
+    ctx.beginPath();
+    ctx.moveTo(16, 32);
+    ctx.lineTo(32, 24);
+    ctx.lineTo(48, 32);
+    ctx.lineTo(32, 40);
+    ctx.closePath();
+    ctx.fill();
+
+    // Front face
+    ctx.fillStyle = '#c9a227';
+    ctx.beginPath();
+    ctx.moveTo(16, 32);
+    ctx.lineTo(32, 40);
+    ctx.lineTo(32, 52);
+    ctx.lineTo(16, 44);
+    ctx.closePath();
+    ctx.fill();
+
+    // Right face
+    ctx.fillStyle = '#b8960f';
+    ctx.beginPath();
+    ctx.moveTo(32, 40);
+    ctx.lineTo(48, 32);
+    ctx.lineTo(48, 44);
+    ctx.lineTo(32, 52);
+    ctx.closePath();
+    ctx.fill();
+
+    // Shine highlight
+    ctx.fillStyle = 'rgba(255, 255, 200, 0.5)';
+    ctx.beginPath();
+    ctx.ellipse(28, 30, 8, 4, -0.5, 0, Math.PI * 2);
+    ctx.fill();
+});
 
 // Sprite: Table Leg Weapon Pickup
 createSprite('weaponPickup_tableLeg', (ctx) => {
@@ -2608,36 +2725,36 @@ function initInput() {
 /* --- game/levels.js --- */
 /**
  * LEVEL DEFINITIONS
- * .: Empty, #: Wall, W: Wood, E: Elevator, T: Table, S: Start, D: Designer (Enemy), A: Ammo, H: Health
+ * .: Empty, #: Wall, W: Wood, E: Elevator, T: Table, S: Start, D: Designer (Enemy), A: Ammo, H: Health, $: Money
  */
 const levels = [
     // Level 1: The Office - Simple connected layout
     // Start at top, work down through rooms to elevator at bottom
     [
         "OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO",
-        "OS....................................HO",
+        "OS......$..............................HO",
         "O......................................O",
-        "O..A...................................O",
-        "O......................................O",
+        "O..A................................$..O",
+        "O.................Z....................O",
         "O......WWWWWWWWWW......WWWWWWWWWW......O",
         "O......W........W......W........W......O",
-        "O......W...T....W......W....T...W......O",
+        "O......W...T..$.W......W.$..T...W......O",
         "O......W........W......W........W......O",
         "O......W...D....+......+....D...W......O",
         "O......WWWWWWWWWW......WWWWWWWWWW......O",
         "O......................................O",
         "O..D.......D.......D.......D.......D..O",
-        "O......................................O",
+        "O..........$........Z........$.........O",
         "O......................................O",
         "O......WWWWWWWWWWWWWWWWWWWWWWWWWW......O",
         "O......W........................W......O",
-        "O......W.......T....D..........W......O",
+        "O......W.......T....D.....Z....W......O",
         "O......W........................W......O",
         "O......+........................+......O",
         "O......WWWWWWWWWWWWWWWWWWWWWWWWWW......O",
         "O......................................O",
         "O..H.......A.......H.......A.......H..O",
-        "O......................................O",
+        "O..........$........................$..O",
         "MMMMMMMMMMMMMMMMMM..MMMMMMMMMMMMMMMMMMMM",
         "M.................XX..................M",
         "M.................EE..................M"
@@ -2646,31 +2763,31 @@ const levels = [
     // Theme: Dark dungeon aesthetic with B (stone) walls, tight passages
     [
         "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
-        "BS....................A.................B",
+        "BS..........$......A................$..B",
         "B..BBBBBBBBB..BBBBBBBBBBBBBBB..BBBBBBBB.B",
-        "B..B.......B..B.............B..B......B.B",
-        "B..B..T....B..B.............B..B..H...B.B",
+        "B..B.......B..B.............B..B..Z...B.B",
+        "B..B..T....B..B......$......B..B..H...B.B",
         "B..B..D....+..+.............+..+......B.B",
-        "B..B.......B..B.............B..B......B.B",
+        "B..B..$....B..B.............B..B......B.B",
         "B..BBBBBBBBB..BBBBBBB+BBBBBBB..BBBBBBBB.B",
         "B.......................................B",
-        "B..H...............................L....B",
+        "B..H...........$...............L....Z..B",
         "B.......................................B",
         "BBBBB+BBBBBBBBBBBBBBBBBBBBBBBBBBB+BBBBBB",
-        "B.......B...............B.............B",
+        "B..$....B...............B............$B",
         "B..D....B.......T.......B.......D.....B",
         "B.......B.......D.......B.............B",
         "B.......+...............+.............B",
-        "B.......B...............B.............B",
+        "B.......B.......Z.......B.............B",
         "BBBBBBBBB...BBBBBBBBBBB...BBBBBBBBBBBBB",
         "B.......................................B",
-        "B..A.......A.......A.......A.......A...B",
+        "B..A.......A..$....A.......A.......A...B",
         "B.......................................B",
         "BBBBB..BBBBBBBBBBBBBBBBBBBBBBBBB..BBBBB.B",
-        "B......B.......................B......B",
+        "B..$...B.......................B...$..B",
         "B..D...B...........T...........B...D..B",
         "B......+.......................+......B",
-        "B......B.......................B......B",
+        "B......B..........Z............B......B",
         "BBBBBBBBBBBBBBBBB..BBBBBBBBBBBBBBBBBBBB",
         "B................XX...................B",
         "B................EE...................B"
@@ -2680,37 +2797,37 @@ const levels = [
     // NOTE: This level requires 4 tables to proceed to the boss level
     [
         "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
-        "MS..........H..................................M",
+        "MS..........$..H...............................M",
         "M..............................................M",
-        "M..H.......A...................................M",
-        "M..............................................M",
+        "M..H.......A........$..........................M",
+        "M.....................Z........................M",
         "CCCCCC+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC+CCCCCCCM",
-        "C......C..............................C...H...M",
-        "C..T...C......ASSEMBLY LINE...T......C...A....M",
+        "C......C...$..........................C...H...M",
+        "C..T...C......ASSEMBLY LINE...T...$..C...A....M",
         "C..D...C..............................C.......M",
         "CCCCCCCC..............................CCCCCCCCC",
         "M..............................................M",
         "M..D...D...D...D...D...D...D...D...D...D...D...M",
-        "M..............................................M",
+        "M..........$........Z........$.................M",
         "M..A.......H.......A.......H.......A.......H..M",
         "M..............................................M",
         "MMMMM+MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM+MMMMMMMM",
-        "M.....M............................M..........M",
-        "M..H..M.....CONTROL ROOM...........M.....T....M",
+        "M.....M............................M.........ZM",
+        "M..H..M.....CONTROL ROOM.....$....M.....T....M",
         "M..A..M............................M.....D....M",
         "M.....+............................+..........M",
         "MMMMMMM............................MMMMMMMMMMMM",
         "M..............................................M",
-        "M..H.......H.......H.......H.......H.......H..M",
+        "M..H.......H..$....H.......H.......H.......H..M",
         "M..A.......A.......A.......A.......A.......A..M",
         "CCCCCCCCCCCCC+CCCCCCCCCCCCCCC+CCCCCCCCCCCCCCCCCC",
-        "C............C.............C..........H.......C",
-        "C....A.......C......T......C.......A..........C",
+        "C.....$......C.............C..........H.......C",
+        "C....A.......C......T......C.......A....Z.....C",
         "C....H.......C......D......C..........A.......C",
         "C............+.............+..................C",
         "CCCCCCCCCCCCCC.............CCCCCCCCCCCCCCCCCCCC",
         "M..............................................M",
-        "M..H.......A.......H.......A.......H.......A..M",
+        "M..H.......A..$....H.......A.......H.......A..M",
         "MMMMMMMMMMMMMMMMMMM....MMMMMMMMMMMMMMMMMMMMMMMM",
         "M..................XX........................M",
         "M..................EE........................M"
@@ -2731,6 +2848,7 @@ const levels = [
         "M..............................................M",
         "MMMMMMMMMMMMMMMMMMMMMM+MMMMMMMMMMMMMMMMMMMMMMMM",
         "M..............................................M",
+        "M..Z...........................................M",
         "M..............................................M",
         "M..............................................M",
         "M..............................................M",
@@ -2750,8 +2868,7 @@ const levels = [
         "M..............................................M",
         "M..............................................M",
         "M..............................................M",
-        "M..............................................M",
-        "M..............................................M",
+        "M...........................................Z..M",
         "M..............................................M",
         "M.....................G........................M",
         "M..............................................M",
@@ -2797,6 +2914,22 @@ const WEAPONS = {
     }
 };
 
+// Point Values
+const SCORE_VALUES = {
+    // Enemy kills (based on difficulty)
+    enemy: {
+        0: 100,      // Guard
+        1: 200,      // Manager
+        2: 400,      // Executive
+        'boss': 5000 // Head Designer
+    },
+    // Collectibles
+    table: 500,      // Primary objective
+    money: 100,      // Table Money pickup (coins)
+    goldBar: 250,    // Gold Bar pickup
+    levelBonus: 1000 // Completing a level
+};
+
 // Game State
 let player = {
     x: 0, y: 0, dir: 0, // x, y in block coords
@@ -2806,6 +2939,7 @@ let player = {
     health: 100,
     ammo: 20,
     tables: 0,
+    score: 0,
     weapons: ['paintbrush'], // Unlocked weapons
     currentWeapon: 0          // Index into weapons array
 };
@@ -2896,6 +3030,8 @@ function loadLevel(lvlIdx) {
             else if (char === 'A') { gameObjects.push({ x: x + 0.5, y: y + 0.5, type: 'ammo', active: true }); }
             else if (char === 'H') { gameObjects.push({ x: x + 0.5, y: y + 0.5, type: 'health', active: true }); }
             else if (char === 'L') { gameObjects.push({ x: x + 0.5, y: y + 0.5, type: 'weaponPickup', weaponType: 'tableLeg', active: true }); }
+            else if (char === '$') { gameObjects.push({ x: x + 0.5, y: y + 0.5, type: 'money', active: true }); }
+            else if (char === 'Z') { gameObjects.push({ x: x + 0.5, y: y + 0.5, type: 'goldBar', active: true }); }
         }
     }
 
@@ -2992,6 +3128,9 @@ function meleeAttack(weapon) {
                 obj.state = 'dead';
                 obj.active = false;
                 playSound('enemy_death');
+                // Award points based on enemy variant
+                player.score += SCORE_VALUES.enemy[obj.variant] || SCORE_VALUES.enemy[0];
+                updateHUD();
 
                 // Boss defeat check
                 if (obj.isBoss) {
@@ -3141,6 +3280,7 @@ function update(dt) {
             if (obj.type === 'table' && obj.active) {
                 obj.active = false;
                 player.tables++;
+                player.score += SCORE_VALUES.table;
                 playSound('collect');
                 updateHUD();
             } else if (obj.type === 'ammo' && obj.active) {
@@ -3162,6 +3302,16 @@ function update(dt) {
                     playSound('collect');
                     updateHUD();
                 }
+            } else if (obj.type === 'money' && obj.active) {
+                obj.active = false;
+                player.score += SCORE_VALUES.money;
+                playSound('money');
+                updateHUD();
+            } else if (obj.type === 'goldBar' && obj.active) {
+                obj.active = false;
+                player.score += SCORE_VALUES.goldBar;
+                playSound('money');
+                updateHUD();
             }
 
             // Check Elevator Condition
@@ -3329,6 +3479,9 @@ function update(dt) {
                                 enemy.state = 'dead';
                                 enemy.active = false;
                                 playSound('enemy_death');
+                                // Award points based on enemy variant
+                                player.score += SCORE_VALUES.enemy[enemy.variant] || SCORE_VALUES.enemy[0];
+                                updateHUD();
 
                                 // Check if this was the boss - trigger credits!
                                 if (enemy.isBoss) {
@@ -3362,6 +3515,7 @@ function update(dt) {
         const blockY = Math.floor(player.y + Math.sin(player.rot) * 0.5);
         if (worldMap[blockY * mapWidth + blockX] === 9) {
             if (player.tables >= requiredTables) {
+                player.score += SCORE_VALUES.levelBonus;
                 playSound('elevator');
                 gameState = 'transition';
                 showScreen('win-screen');
@@ -3438,6 +3592,7 @@ function startGameAtLevel(lvlIdx) {
     initAudio();
     player.health = 100;
     player.ammo = 50;
+    player.score = 0;
     loadLevel(lvlIdx);
     gameState = 'play';
     hideScreens();
@@ -3791,6 +3946,8 @@ function drawSprites(viewHeight = SCREEN_HEIGHT) {
                 if (sprite.type === 'table') img = sprites['table'];
                 else if (sprite.type === 'ammo') img = sprites['ammo'];
                 else if (sprite.type === 'health') img = sprites['health'];
+                else if (sprite.type === 'money') img = sprites['money'];
+                else if (sprite.type === 'goldBar') img = sprites['goldBar'];
                 else if (sprite.type === 'weaponPickup') img = sprites['weaponPickup_' + sprite.weaponType];
                 else if (sprite.type === 'enemy') {
                     const suffix = (sprite.variant !== undefined) ? '_' + sprite.variant : '_0';
@@ -4150,6 +4307,7 @@ let hudHealth;
 let hudAmmo;
 let hudTables;
 let hudFloor;
+let hudScore;
 let faceImg;
 let animationFrameId;
 let lastTime = 0;
@@ -4165,6 +4323,7 @@ function initGame() {
         hudAmmo = document.getElementById('hud-ammo');
         hudTables = document.getElementById('hud-tables');
         hudFloor = document.getElementById('hud-floor');
+        hudScore = document.getElementById('hud-score');
         faceImg = document.getElementById('face-img');
 
         initInput();
@@ -4354,6 +4513,7 @@ function updateHUD() {
     hudHealth.innerText = Math.floor(player.health) + "%";
     hudAmmo.innerText = player.ammo;
     hudTables.innerText = player.tables + "/" + requiredTables;
+    if (hudScore) hudScore.innerText = player.score.toLocaleString();
 
     // Green when complete
     if (player.tables >= requiredTables) {
