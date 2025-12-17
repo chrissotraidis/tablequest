@@ -1,6 +1,10 @@
 # 🎮 SANDY'S TABLE QUEST
 
 <p align="center">
+  <img src="src/assets/raw/tableboxart.png" alt="Sandy's Table Quest box art" width="720" />
+</p>
+
+<p align="center">
   <strong>A retro-style first-person shooter that runs entirely in your browser</strong>
 </p>
 
