@@ -32,6 +32,22 @@ const WEAPONS = {
     }
 };
 
+// Point Values
+const SCORE_VALUES = {
+    // Enemy kills (based on difficulty)
+    enemy: {
+        0: 100,      // Guard
+        1: 200,      // Manager
+        2: 400,      // Executive
+        'boss': 5000 // Head Designer
+    },
+    // Collectibles
+    table: 500,      // Primary objective
+    money: 100,      // Table Money pickup (coins)
+    goldBar: 250,    // Gold Bar pickup
+    levelBonus: 1000 // Completing a level
+};
+
 // Game State
 let player = {
     x: 0, y: 0, dir: 0, // x, y in block coords
@@ -41,6 +57,7 @@ let player = {
     health: 100,
     ammo: 20,
     tables: 0,
+    score: 0,
     weapons: ['paintbrush'], // Unlocked weapons
     currentWeapon: 0          // Index into weapons array
 };
@@ -131,6 +148,8 @@ function loadLevel(lvlIdx) {
             else if (char === 'A') { gameObjects.push({ x: x + 0.5, y: y + 0.5, type: 'ammo', active: true }); }
             else if (char === 'H') { gameObjects.push({ x: x + 0.5, y: y + 0.5, type: 'health', active: true }); }
             else if (char === 'L') { gameObjects.push({ x: x + 0.5, y: y + 0.5, type: 'weaponPickup', weaponType: 'tableLeg', active: true }); }
+            else if (char === '$') { gameObjects.push({ x: x + 0.5, y: y + 0.5, type: 'money', active: true }); }
+            else if (char === 'Z') { gameObjects.push({ x: x + 0.5, y: y + 0.5, type: 'goldBar', active: true }); }
         }
     }
 
@@ -227,6 +246,9 @@ function meleeAttack(weapon) {
                 obj.state = 'dead';
                 obj.active = false;
                 playSound('enemy_death');
+                // Award points based on enemy variant
+                player.score += SCORE_VALUES.enemy[obj.variant] || SCORE_VALUES.enemy[0];
+                updateHUD();
 
                 // Boss defeat check
                 if (obj.isBoss) {
@@ -376,6 +398,7 @@ function update(dt) {
             if (obj.type === 'table' && obj.active) {
                 obj.active = false;
                 player.tables++;
+                player.score += SCORE_VALUES.table;
                 playSound('collect');
                 updateHUD();
             } else if (obj.type === 'ammo' && obj.active) {
@@ -397,6 +420,16 @@ function update(dt) {
                     playSound('collect');
                     updateHUD();
                 }
+            } else if (obj.type === 'money' && obj.active) {
+                obj.active = false;
+                player.score += SCORE_VALUES.money;
+                playSound('money');
+                updateHUD();
+            } else if (obj.type === 'goldBar' && obj.active) {
+                obj.active = false;
+                player.score += SCORE_VALUES.goldBar;
+                playSound('money');
+                updateHUD();
             }
 
             // Check Elevator Condition
@@ -564,6 +597,9 @@ function update(dt) {
                                 enemy.state = 'dead';
                                 enemy.active = false;
                                 playSound('enemy_death');
+                                // Award points based on enemy variant
+                                player.score += SCORE_VALUES.enemy[enemy.variant] || SCORE_VALUES.enemy[0];
+                                updateHUD();
 
                                 // Check if this was the boss - trigger credits!
                                 if (enemy.isBoss) {
@@ -597,6 +633,7 @@ function update(dt) {
         const blockY = Math.floor(player.y + Math.sin(player.rot) * 0.5);
         if (worldMap[blockY * mapWidth + blockX] === 9) {
             if (player.tables >= requiredTables) {
+                player.score += SCORE_VALUES.levelBonus;
                 playSound('elevator');
                 gameState = 'transition';
                 showScreen('win-screen');
@@ -673,6 +710,7 @@ function startGameAtLevel(lvlIdx) {
     initAudio();
     player.health = 100;
     player.ammo = 50;
+    player.score = 0;
     loadLevel(lvlIdx);
     gameState = 'play';
     hideScreens();

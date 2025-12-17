@@ -36,6 +36,24 @@ Restores player health.
 | Sprite | `health` (gold bottle) |
 | **Amount Given** | **+25 HP** (capped at 100) |
 
+### Table Money (`$`)
+Bonus score collectibles placed throughout levels.
+
+| Property | Value |
+|:---|:---|
+| Character | `$` |
+| Sprite | `money` (gold coin stack) |
+| **Points Given** | **+100 score** |
+
+### Gold Bar (`Z`)
+High-value bonus collectibles for exploration rewards.
+
+| Property | Value |
+|:---|:---|
+| Character | `Z` |
+| Sprite | `goldBar` (shiny gold ingot) |
+| **Points Given** | **+250 score** |
+
 ## Implementation
 
 Items are stored in the `gameObjects` array with type properties:

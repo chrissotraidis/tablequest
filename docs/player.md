@@ -9,6 +9,7 @@ This document describes the player mechanics and combat system.
 | Health | 100 | Reduced by enemy projectiles |
 | Ammo | 20 | Consumed when firing ranged weapons |
 | Tables | 0 | Collected objectives per level |
+| Score | 0 | Points earned from kills and pickups |
 | Speed | 0.06 | Movement speed |
 | Rotation Speed | 0.012 | Turning speed |
 | Weapons | ['paintbrush'] | Unlocked weapons inventory |
@@ -73,5 +74,6 @@ Ranged weapons spawn projectiles that travel forward:
 | Ammo | Left | Blue | Ammo count |
 | Face | Center | - | Expression (happy/ouch) |
 | Weapon | Center | Gold | Slot + current weapon |
+| Score | Right | Gold | Points earned |
 | Tables | Right | Green | Collection count |
 | Floor | Right | Yellow | Current level |

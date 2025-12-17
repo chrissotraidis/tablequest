@@ -229,6 +229,73 @@ createSprite('health', (ctx) => {
     ctx.fillText('+', 27, 45);
 });
 
+// Sprite: Table Money (Gold Coin Stack)
+createSprite('money', (ctx) => {
+    // Gold coin stack with $ symbol
+    ctx.fillStyle = '#d4af37'; // Gold base
+    ctx.beginPath();
+    ctx.ellipse(32, 48, 22, 8, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#c9a227'; // Darker middle coin
+    ctx.beginPath();
+    ctx.ellipse(32, 40, 20, 7, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#d4af37'; // Top coin
+    ctx.beginPath();
+    ctx.ellipse(32, 32, 18, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // $ symbol
+    ctx.fillStyle = '#8b7500';
+    ctx.font = 'bold 18px serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('$', 32, 38);
+    // Shine highlight
+    ctx.fillStyle = 'rgba(255, 255, 200, 0.4)';
+    ctx.beginPath();
+    ctx.ellipse(26, 28, 6, 3, -0.3, 0, Math.PI * 2);
+    ctx.fill();
+});
+
+// Sprite: Gold Bar (High Value Pickup)
+createSprite('goldBar', (ctx) => {
+    // Shiny gold ingot shape
+    ctx.fillStyle = '#d4af37'; // Gold
+
+    // 3D bar effect - top
+    ctx.beginPath();
+    ctx.moveTo(16, 32);
+    ctx.lineTo(32, 24);
+    ctx.lineTo(48, 32);
+    ctx.lineTo(32, 40);
+    ctx.closePath();
+    ctx.fill();
+
+    // Front face
+    ctx.fillStyle = '#c9a227';
+    ctx.beginPath();
+    ctx.moveTo(16, 32);
+    ctx.lineTo(32, 40);
+    ctx.lineTo(32, 52);
+    ctx.lineTo(16, 44);
+    ctx.closePath();
+    ctx.fill();
+
+    // Right face
+    ctx.fillStyle = '#b8960f';
+    ctx.beginPath();
+    ctx.moveTo(32, 40);
+    ctx.lineTo(48, 32);
+    ctx.lineTo(48, 44);
+    ctx.lineTo(32, 52);
+    ctx.closePath();
+    ctx.fill();
+
+    // Shine highlight
+    ctx.fillStyle = 'rgba(255, 255, 200, 0.5)';
+    ctx.beginPath();
+    ctx.ellipse(28, 30, 8, 4, -0.5, 0, Math.PI * 2);
+    ctx.fill();
+});
 
 // Sprite: Table Leg Weapon Pickup
 createSprite('weaponPickup_tableLeg', (ctx) => {

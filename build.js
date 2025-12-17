@@ -44,7 +44,8 @@ function build() {
     });
 
     // Inject into HTML
-    html = html.replace('// %%SCRIPTS%%', fullScript);
+    // Inject into HTML
+    html = html.replace('// %%SCRIPTS%%', () => fullScript);
 
     // Minimize whitespace in HTML (simple)
     // html = html.replace(/\n\s*\n/g, '\n'); 
