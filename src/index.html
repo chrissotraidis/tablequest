@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SANDY'S TABLE QUEST</title>
+    <style>
+        body {
+            background-color: #1a1a1a;
+            color: #eee;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        #game-container {
+            position: relative;
+            width: 640px;
+            height: 480px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+            image-rendering: pixelated;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            background: #000;
+        }
+
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            text-shadow: 2px 2px 0 #000;
+        }
+
+        .screen {
+            background: rgba(0, 0, 0, 0.85);
+            padding: 20px;
+            border: 4px double #d9a066;
+            /* Wood color */
+            pointer-events: auto;
+            max-width: 80%;
+            white-space: pre-wrap;
+            overflow-wrap: break-word;
+            /* Ensure long words break */
+        }
+
+        /* LOADING SCREEN STYLES */
+        #loading-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #111 0%, #222 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 300;
+        }
+
+        .loading-title {
+            font-family: 'Verdana', sans-serif;
+            font-size: 40px;
+            font-weight: bold;
+            color: #d9a066;
+            margin-bottom: 40px;
+            text-shadow: 0 0 10px rgba(217, 160, 102, 0.4);
+            letter-spacing: 4px;
+        }
+
+        .loading-bar-container {
+            width: 60%;
+            height: 10px;
+            background: #000;
+            border: 1px solid #444;
+            border-radius: 5px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .loading-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #d9a066, #ffcc88);
+            width: 0%;
+            transition: width 0.1s linear;
+            box-shadow: 0 0 10px #d9a066;
+        }
+
+        .loading-text {
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #888;
+        }
+
+        .press-enter {
+            margin-top: 30px;
+            font-size: 16px;
+            color: #fff;
+            animation: pulse 1s infinite alternate;
+            font-weight: bold;
+        }
+
+        @keyframes pulse {
+            from {
+                opacity: 0.5;
+                text-shadow: 0 0 0 #fff;
+            }
+
+            to {
+                opacity: 1;
+                text-shadow: 0 0 10px #fff;
+            }
+        }
+
+        p {
+            font-size: 14px;
+            line-height: 1.5;
+            color: #ccc;
+            margin-bottom: 20px;
+        }
+
+        .blink {
+            animation: blink 1s infinite;
+        }
+
+        button {
+            background: #d9a066;
+            border: 2px solid #fff;
+            color: #000;
+            padding: 10px 20px;
+            font-family: inherit;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        button:hover {
+            background: #fff;
+        }
+
+        @keyframes blink {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        @keyframes scrollCredits {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            10% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+            90% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0;
+            }
+        }
+
+        /* STAR WARS STYLE INTRO SCROLL - SPACE THEMED */
+        #intro-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, #000 0%, #0a0a1a 50%, #000 100%);
+            z-index: 1000;
+            overflow: hidden;
+        }
+
+        /* Animated star field */
+        #intro-screen::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image:
+                radial-gradient(2px 2px at 20px 30px, #fff, transparent),
+                radial-gradient(2px 2px at 40px 70px, rgba(255, 255, 255, 0.8), transparent),
+                radial-gradient(1px 1px at 90px 40px, #fff, transparent),
+                radial-gradient(2px 2px at 160px 120px, rgba(255, 255, 255, 0.9), transparent),
+                radial-gradient(1px 1px at 230px 80px, #fff, transparent),
+                radial-gradient(2px 2px at 300px 150px, rgba(255, 255, 255, 0.7), transparent),
+                radial-gradient(1px 1px at 370px 50px, #fff, transparent),
+                radial-gradient(2px 2px at 450px 180px, rgba(255, 255, 255, 0.8), transparent),
+                radial-gradient(1px 1px at 520px 100px, #fff, transparent),
+                radial-gradient(2px 2px at 600px 60px, rgba(255, 255, 255, 0.9), transparent),
+                radial-gradient(1px 1px at 680px 200px, #fff, transparent),
+                radial-gradient(2px 2px at 750px 130px, rgba(255, 255, 255, 0.7), transparent);
+            background-size: 800px 250px;
+            animation: twinkle 8s ease-in-out infinite;
+            opacity: 0.8;
+        }
+
+        @keyframes twinkle {
+
+            0%,
+            100% {
+                opacity: 0.6;
+            }
+
+            50% {
+                opacity: 1;
+            }
+        }
+
+        /* Scroll container - simple vertical scroll, no perspective distortion */
+        .intro-container {
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            width: 85%;
+            max-width: 700px;
+            transform: translateX(-50%);
+            animation: introScroll 90s linear forwards;
+            z-index: 5;
+            padding: 0 20px;
+            box-sizing: border-box;
+        }
+
+        @keyframes introScroll {
+            0% {
+                top: 100%;
+            }
+
+            100% {
+                top: -320%;
+            }
+        }
+
+        /* Top fade gradient */
+        .intro-fade-top {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 200px;
+            background: linear-gradient(to bottom, #000 0%, #000 30%, transparent 100%);
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        /* Bottom fade */
+        .intro-fade-bottom {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 50px;
+            background: linear-gradient(to top, #000, transparent);
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .intro-text {
+            color: #d9a066;
+            font-family: 'Georgia', serif;
+            font-size: 16px;
+            line-height: 1.6;
+            text-align: center;
+            padding: 0 20px;
+        }
+
+        .intro-text h1 {
+            font-size: 28px;
+            text-align: center;
+            color: #fff;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px #d9a066;
+        }
+
+        .intro-text h2 {
+            font-size: 14px;
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+            font-style: italic;
+        }
+
+        .intro-text p {
+            margin-bottom: 15px;
+        }
+
+        .intro-text .emphasis {
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .intro-text .dramatic {
+            text-align: center;
+            font-size: 20px;
+            color: #fff;
+            margin: 20px 0;
+        }
+
+        .intro-text .card-text {
+            text-align: center;
+            font-style: italic;
+            color: #888;
+            margin: 30px 0;
+        }
+
+        .intro-text .final-title {
+            font-size: 24px;
+            text-align: center;
+            color: #d9a066;
+            margin-top: 40px;
+            text-shadow: 0 0 15px #d9a066;
+        }
+
+        .intro-text .tagline {
+            text-align: center;
+            font-size: 16px;
+            color: #fff;
+            margin-top: 15px;
+        }
+
+        .intro-start-prompt {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 100;
+        }
+
+        .intro-start-prompt h2 {
+            color: #d9a066;
+            font-size: 28px;
+            margin-bottom: 20px;
+            text-shadow: 0 0 15px #d9a066;
+        }
+
+        .intro-start-prompt p {
+            color: #fff;
+            font-size: 18px;
+            animation: blink 1s infinite;
+        }
+
+        .intro-text .tagline {
+            text-align: center;
+            font-size: 18px;
+            color: #fff;
+            margin-top: 20px;
+        }
+
+        .intro-skip {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            color: #555;
+            font-size: 10px;
+            animation: blink 2s infinite;
+        }
+
+        /* Fade gradient at top and bottom */
+        #intro-screen::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100px;
+            background: linear-gradient(to bottom, #000, transparent);
+            z-index: 10;
+        }
+
+        #intro-screen::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 150px;
+            background: linear-gradient(to top, #000, transparent);
+            z-index: 10;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* HUD STYLES - Classic FPS Layout */
+        #hud {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 70px;
+            background: linear-gradient(to bottom, #3a3a3a 0%, #2a2a2a 100%);
+            border-top: 3px solid #555;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-sizing: border-box;
+            padding: 5px 10px;
+        }
+
+        .hud-left,
+        .hud-right {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 120px;
+        }
+
+        .hud-left {
+            align-items: flex-start;
+        }
+
+        .hud-right {
+            align-items: flex-end;
+        }
+
+        .hud-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .hud-stat {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+        }
+
+        .hud-stat .label {
+            color: #888;
+            font-size: 10px;
+            text-transform: uppercase;
+            min-width: 50px;
+        }
+
+        .hud-stat .value {
+            color: #fff;
+            font-weight: bold;
+            font-size: 18px;
+            text-shadow: 1px 1px 2px #000;
+        }
+
+        .hud-stat.health .value {
+            color: #ff6666;
+        }
+
+        .hud-stat.ammo .value {
+            color: #66aaff;
+        }
+
+        .hud-stat.tables .value {
+            color: #66ff66;
+        }
+
+        .hud-stat.floor .value {
+            color: #ffcc66;
+        }
+
+        #face-container {
+            width: 50px;
+            height: 50px;
+            background: #444;
+            border: 2px solid #666;
+            border-radius: 4px;
+            image-rendering: pixelated;
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5), 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        #face-img {
+            width: 100%;
+            height: 100%;
+        }
+
+        .weapon-indicator {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+        }
+
+        .weapon-indicator .slot {
+            color: #555;
+            font-size: 9px;
+        }
+
+        .weapon-indicator .name {
+            color: #d9a066;
+            font-weight: bold;
+            text-shadow: 0 0 4px rgba(217, 160, 102, 0.5);
+        }
+
+        /* HD MENU STYLES */
+        #hd-menu {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, #001840 0%, #000810 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            pointer-events: auto;
+        }
+
+        .menu-title {
+            font-family: 'Verdana', sans-serif;
+            font-size: 48px;
+            font-weight: bold;
+            color: #d9a066;
+            text-shadow: 4px 4px 0px #000, 0 0 20px rgba(217, 160, 102, 0.5);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .menu-subtitle {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #8899aa;
+            margin-bottom: 50px;
+            letter-spacing: 2px;
+        }
+
+        .menu-item {
+            font-family: 'Courier New', monospace;
+            font-size: 24px;
+            color: #667788;
+            margin: 10px 0;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            padding: 5px 20px;
+        }
+
+        .menu-item.selected {
+            color: #fff;
+            transform: scale(1.1);
+            text-shadow: 0 0 10px #fff;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            border-left: 4px solid #d9a066;
+            border-right: 4px solid #d9a066;
+        }
+
+        #menu-instructions {
+            background: rgba(0, 0, 0, 0.9);
+            padding: 40px;
+            border: 2px solid #d9a066;
+            max-width: 80%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .menu-footer {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #d9a066;
+            animation: blink 1s infinite alternate;
+        }
+
+        #menu-level-select {
+            background: rgba(0, 0, 0, 0.9);
+            padding: 40px;
+            border: 2px solid #d9a066;
+            max-width: 80%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .level-item {
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            color: #667788;
+            margin: 8px 0;
+            cursor: pointer;
+            transition: all 0.2s;
+            padding: 5px 15px;
+        }
+
+        .level-item.selected {
+            color: #fff;
+            transform: scale(1.05);
+            text-shadow: 0 0 10px #fff;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            border-left: 3px solid #d9a066;
+            border-right: 3px solid #d9a066;
+        }
+
+        #debug-log {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 50%;
+            /* Only top half to see game */
+            background: rgba(50, 0, 0, 0.9);
+            color: #ffcccc;
+            font-family: monospace;
+            z-index: 9999;
+            pointer-events: none;
+            overflow-y: auto;
+            display: none;
+            /* Hidden unless error */
+            padding: 10px;
+            white-space: pre-wrap;
+            border-bottom: 2px solid red;
+        }
+
+        #debug-log.active {
+            display: block;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div id="game-container">
+        <canvas id="gameCanvas" width="320" height="200"></canvas>
+
+        <div id="ui-layer">
+            <div id="hud" class="hidden">
+                <!-- Left Panel: Health & Ammo -->
+                <div class="hud-left">
+                    <div class="hud-stat health">
+                        <span class="label">HEALTH</span>
+                        <span class="value" id="hud-health">100%</span>
+                    </div>
+                    <div class="hud-stat ammo">
+                        <span class="label">AMMO</span>
+                        <span class="value" id="hud-ammo">20</span>
+                    </div>
+                </div>
+
+                <!-- Center: Face & Weapon -->
+                <div class="hud-center">
+                    <div id="face-container">
+                        <img id="face-img" src="">
+                    </div>
+                    <div class="weapon-indicator">
+                        <span class="slot" id="hud-weapon-slot">[1]</span>
+                        <span class="name" id="hud-weapon">PAINTBRUSH</span>
+                    </div>
+                </div>
+
+                <!-- Right Panel: Tables & Floor -->
+                <div class="hud-right">
+                    <div class="hud-stat tables">
+                        <span class="value" id="hud-tables">0/3</span>
+                        <span class="label">TABLES</span>
+                    </div>
+                    <div class="hud-stat floor">
+                        <span class="value" id="hud-floor">1</span>
+                        <span class="label">FLOOR</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="start-screen" class="screen hidden">
+                <h1>Sandy's Table Quest</h1>
+                <p>In the year 199X, the Interior Design Cartel stole your masterpieces.<br>Reclaim your tables.
+                    Splatter the critics.</p>
+                <p style="color:#d9a066">Controls: Arrows/WASD to Move, Space to Shoot.</p>
+                <button onclick="startGame()">ENTER THE OFFICE</button>
+            </div>
+
+            <div id="game-over-screen" class="screen hidden">
+                <h1 style="color:red">FIRED!</h1>
+                <p>The critics were too harsh.</p>
+                <button onclick="location.reload()">TRY AGAIN</button>
+            </div>
+
+            <div id="win-screen" class="screen hidden">
+                <h1 style="color:#0f0">PROMOTED!</h1>
+                <p>Floor cleared! Taking elevator...</p>
+            </div>
+
+            <div id="victory-screen" class="screen hidden">
+                <h1 style="color:gold">MASTERPIECE RECLAIMED!</h1>
+                <p>You defeated the Head Designer and got all the tables!</p>
+                <p>Sandy returns to her workshop a legend.</p>
+                <button onclick="location.reload()">NEW GAME</button>
+            </div>
+
+            <!-- CREDITS SCREEN -->
+            <div id="credits-screen" class="screen hidden" style="
+                background: rgba(0, 0, 0, 0.95);
+                min-height: 300px;
+                overflow: hidden;
+            ">
+                <div class="credits-content" style="animation: scrollCredits 10s linear;">
+                    <h1 style="color: gold; font-size: 32px; margin-bottom: 30px;">CONGRATULATIONS!</h1>
+                    <p style="color: #d9a066; font-size: 18px;">You defeated the Head Designer!</p>
+                    <p style="margin-top: 20px;">Sandy has reclaimed all her tables<br>and saved the furniture industry.
+                    </p>
+
+                    <div style="margin-top: 40px; color: #888;">
+                        <p style="font-size: 12px;">- CREDITS -</p>
+                        <p style="margin-top: 20px; font-size: 14px;">SANDY'S TABLE QUEST</p>
+                        <p style="font-size: 12px; color: #666;">The Furniture Operations</p>
+
+                        <p style="margin-top: 30px; font-size: 12px; color: #888;">
+                            Thank you for playing!
+                        </p>
+                    </div>
+
+                    <p style="margin-top: 40px; color: #d9a066; animation: blink 1s infinite;">
+                        Returning to menu...
+                    </p>
+                </div>
+            </div>
+
+            <!-- STAR WARS STYLE INTRO SCREEN -->
+            <div id="intro-screen" class="hidden">
+                <div class="intro-fade-top"></div>
+                <div class="intro-fade-bottom"></div>
+                <div class="intro-container">
+                    <div class="intro-text">
+                        <h1>🪵 SANDY'S TABLE QUEST</h1>
+                        <h2>A Chronicle of Wood, Will, and Warped Taste</h2>
+
+                        <p class="dramatic">In the year 2025,</p>
+                        <p>As the Mississippi rolled past St. Louis and the city hummed with quiet industry, something
+                            sacred was being lost.</p>
+
+                        <p>Not all at once. Not loudly. But carefully, deliberately, under the glow of track lighting
+                            and polished concrete floors.</p>
+
+                        <p class="emphasis">Craftsmanship was being replaced.</p>
+
+                        <p>Once, St. Louis was a city of hands. Bricklayers, machinists, woodworkers. People who
+                            understood weight and balance because they lived with both. Things were built to last
+                            because they had to. Furniture bore scars, stories, and the unmistakable mark of the person
+                            who made it.</p>
+
+                        <p class="dramatic">And at the center of it all was Sandy.</p>
+
+                        <p>An eccentric, brilliant furniture artisan whose workshop smelled of oak, glue, and old jazz
+                            records. Sandy didn't design for magazines. She built tables meant to be used, leaned on,
+                            argued over, and inherited. Every joint was deliberate. Every surface told the truth about
+                            the wood it came from.</p>
+
+                        <p>Her tables didn't just hold objects. <span class="emphasis">They held lives.</span></p>
+
+                        <p>That made her a problem.</p>
+
+                        <p>The <span class="emphasis">Interior Design Cartel</span> had been expanding quietly. A
+                            syndicate of tastemakers, corporate consultants, and trend forecasters who believed that
+                            permanence was bad for business. They thrived on churn. On seasonality. On selling the
+                            illusion of meaning while stripping it away.</p>
+
+                        <p>To them, Sandy's work was dangerous. It reminded people that things could matter.</p>
+
+                        <p class="dramatic">They came in the night.</p>
+
+                        <p>No alarms. No witnesses. Just precision. Her workshop was gutted. Masterpiece tables vanished
+                            without a trace. Blueprints were shredded. Tools destroyed. The radio smashed mid song.</p>
+
+                        <p>All that remained was a single card, placed neatly on her workbench:</p>
+
+                        <p class="card-text">"Form follows function."</p>
+
+                        <p class="emphasis">Sandy knew better.</p>
+
+                        <p>She followed the trail through abandoned showrooms and vacant lofts, through shell companies
+                            and fake storefronts, until it led to a place most people pretended not to notice.</p>
+
+                        <p class="dramatic">An office tower downtown.</p>
+
+                        <p>By day, it housed design firms, branding agencies, and "creative departments." By night, it
+                            descended into something else entirely.</p>
+
+                        <p>A vertical labyrinth of departments, each more absurd than the last. A corporate dungeon
+                            where stolen craftsmanship was hoarded, cataloged, and hidden away behind locked elevators
+                            and armed interior decorators.</p>
+
+                        <p class="emphasis">Her tables were down there.</p>
+
+                        <p class="dramatic">Sandy didn't hesitate.</p>
+
+                        <p>She strapped on what she could salvage. She stepped inside the tower. And the doors sealed
+                            shut behind her.</p>
+
+                        <p>Each floor was a trial. Each hallway a test of resolve. Each enemy a reminder of what happens
+                            when taste replaces soul.</p>
+
+                        <p class="emphasis">But Sandy pressed on.</p>
+
+                        <p>Because tables are not disposable. Because craft is not a trend. Because some things must be
+                            reclaimed by force.</p>
+
+                        <p class="dramatic">Collect the tables.<br>Clear the floors.<br>Descend deeper into the dungeon.
+                        </p>
+
+                        <p>This is not about design.</p>
+
+                        <p class="emphasis">This is about legacy.</p>
+
+                        <p class="final-title">SANDY'S TABLE QUEST</p>
+
+                        <p class="tagline">They took the tables.<br>She's taking them back.</p>
+                    </div>
+                </div>
+                <div id="intro-start-prompt" class="intro-start-prompt hidden">
+                    <h2>SANDY'S TABLE QUEST</h2>
+                    <p>PRESS ENTER TO BEGIN</p>
+                </div>
+                <div class="intro-skip">PRESS ENTER OR SPACE TO SKIP</div>
+            </div>
+
+            <!-- HD LOADING SCREEN -->
+            <div id="loading-screen">
+                <div class="loading-title">LOADING...</div>
+                <div class="loading-bar-container">
+                    <div id="load-bar" class="loading-bar-fill"></div>
+                </div>
+                <div id="load-text" class="loading-text">Initializing Paint Physics...</div>
+            </div>
+
+            <!-- HD MENU OVERLAY -->
+            <div id="hd-menu" class="hidden">
+                <div class="menu-title">SANDY'S TABLE QUEST</div>
+                <div class="menu-subtitle">The Furniture Operations</div>
+                <div id="menu-items">
+                    <div class="menu-item selected" data-idx="0">NEW GAME</div>
+                    <div class="menu-item" data-idx="1">LEVEL SELECT</div>
+                    <div class="menu-item" data-idx="2">INSTRUCTIONS</div>
+                    <div class="menu-item" data-idx="3">QUIT</div>
+                </div>
+                <div id="menu-instructions" class="hidden">
+                    <h2>INSTRUCTIONS</h2>
+                    <p>Reclaim your tables from the Cartel!</p>
+                    <p>WASD / Arrows to Move</p>
+                    <p>SPACE to Paint</p>
+                    <p>E to Open Doors</p>
+                    <div class="menu-footer">PRESS ENTER OR ESC TO RETURN</div>
+                </div>
+                <div id="menu-level-select" class="hidden">
+                    <h2>LEVEL SELECT</h2>
+                    <p style="color: #888; font-size: 12px; margin-bottom: 20px;">Choose a level to start</p>
+                    <div class="level-item selected" data-level="0">LEVEL 1: THE OFFICE</div>
+                    <div class="level-item" data-level="1">LEVEL 2: THE DUNGEON</div>
+                    <div class="level-item" data-level="2">LEVEL 3: THE FACTORY</div>
+                    <div class="level-item" data-level="3">LEVEL 4: THE BOSS</div>
+                    <div class="menu-footer">PRESS ENTER TO SELECT, ESC TO RETURN</div>
+                </div>
+            </div>
+        </div> <!-- End UI Layer -->
+    </div> <!-- End Game Container -->
+
+    <div id="debug-log"></div>
+
+
+
+
+    <script>
+        // EMERGENCY DEBUG LOGGING
+        window.onerror = function (msg, url, line, col, error) {
+            const log = document.getElementById('debug-log');
+            if (log) {
+                log.classList.add('active');
+                log.innerText += `ERROR: ${msg}\nLine: ${line}:${col}\nstack: ${error ? error.stack : 'N/A'}\n\n`;
+            }
+            return false;
+        };
+
+        console.log = (function (oldLog) {
+            return function (...args) {
+                oldLog.apply(console, args);
+                // Optional: Print logos depending on need, but errors are priority
+                // const log = document.getElementById('debug-log');
+                // if (log && log.classList.contains('active')) log.innerText += `LOG: ${args.join(' ')}\n`;
+            };
+        })(console.log);
+
+        /** * SANDY'S TABLE QUEST
+         * Single-file Raycasting Engine & Game Logic
+         */
+        // %%SCRIPTS%%
+    </script>
+</body>
+
+</html>

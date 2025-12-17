@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SANDY'S TABLE QUEST</title>
+    <style>
+        body {
+            background-color: #1a1a1a;
+            color: #eee;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        #game-container {
+            position: relative;
+            width: 640px;
+            height: 480px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+            image-rendering: pixelated;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            background: #000;
+        }
+
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            text-shadow: 2px 2px 0 #000;
+        }
+
+        .screen {
+            background: rgba(0, 0, 0, 0.85);
+            padding: 20px;
+            border: 4px double #d9a066; /* Wood color */
+            pointer-events: auto;
+            max-width: 80%;
+        }
+
+        /* LOADING SCREEN STYLES */
+        #loading-screen {
+            background-color: #333;
+            color: #d9a066;
+            font-family: 'Courier New', Courier, monospace;
+            z-index: 100;
+        }
+        .load-bar-container {
+            width: 300px;
+            height: 20px;
+            border: 2px solid #fff;
+            margin: 20px auto;
+            background: #000;
+            padding: 2px;
+        }
+        .load-bar-fill {
+            width: 0%;
+            height: 100%;
+            background-color: #d9a066;
+            transition: width 0.1s;
+        }
+
+        h1 { font-size: 32px; color: #ff9900; margin-bottom: 10px; text-transform: uppercase; }
+        h2 { font-size: 20px; color: #fff; margin-bottom: 20px; }
+        p { font-size: 14px; line-height: 1.5; color: #ccc; margin-bottom: 20px; }
+        .blink { animation: blink 1s infinite; }
+        
+        button {
+            background: #d9a066;
+            border: 2px solid #fff;
+            color: #000;
+            padding: 10px 20px;
+            font-family: inherit;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+        button:hover { background: #fff; }
+
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0; } 100% { opacity: 1; } }
+
+        .hidden { display: none !important; }
+
+        /* HUD STYLES */
+        #hud {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 80px;
+            background: #333;
+            border-top: 4px solid #555;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            box-sizing: border-box;
+            padding: 0 20px;
+        }
+
+        .hud-panel {
+            background: #222;
+            border: 2px inset #555;
+            padding: 5px 10px;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .hud-label { color: #d9a066; font-size: 10px; margin-bottom: 2px; }
+        .hud-value { color: #fff; font-size: 24px; font-weight: bold; }
+        
+        #face-container {
+            width: 64px;
+            height: 64px;
+            background: #444;
+            border: 2px inset #666;
+            image-rendering: pixelated;
+        }
+        
+        #face-img { width: 100%; height: 100%; }
+
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <canvas id="gameCanvas" width="320" height="200"></canvas>
+    
+    <div id="hud" class="hidden">
+        <div class="hud-panel">
+            <div class="hud-label">HEALTH</div>
+            <div class="hud-value" id="hud-health">100%</div>
+        </div>
+        <div class="hud-panel">
+            <div class="hud-label">AMMO</div>
+            <div class="hud-value" id="hud-ammo">50</div>
+        </div>
+        <div id="face-container">
+            <img id="face-img" src="" alt="Sandy">
+        </div>
+        <div class="hud-panel">
+            <div class="hud-label">TABLES</div>
+            <div class="hud-value" id="hud-tables">0/3</div>
+        </div>
+        <div class="hud-panel">
+            <div class="hud-label">FLOOR</div>
+            <div class="hud-value" id="hud-floor">1</div>
+        </div>
+    </div>
+
+    <div id="ui-layer">
+        <div id="loading-screen" class="screen">
+            <h1>LOADING...</h1>
+            <p>Initializing Paint Physics...</p>
+            <div class="load-bar-container">
+                <div id="load-bar" class="load-bar-fill"></div>
+            </div>
+            <p id="load-text">Please Wait</p>
+        </div>
+
+        <div id="start-screen" class="screen hidden">
+            <h1>Sandy's Table Quest</h1>
+            <p>In the year 199X, the Interior Design Cartel stole your masterpieces.<br>Reclaim your tables. Splatter the critics.</p>
+            <p style="color:#d9a066">Controls: Arrows/WASD to Move, Space to Shoot.</p>
+            <button onclick="startGame()">ENTER THE OFFICE</button>
+        </div>
+
+        <div id="game-over-screen" class="screen hidden">
+            <h1 style="color:red">FIRED!</h1>
+            <p>The critics were too harsh.</p>
+            <button onclick="location.reload()">TRY AGAIN</button>
+        </div>
+
+        <div id="win-screen" class="screen hidden">
+            <h1 style="color:#0f0">PROMOTED!</h1>
+            <p>Floor cleared! Taking elevator...</p>
+        </div>
+        
+        <div id="victory-screen" class="screen hidden">
+            <h1 style="color:gold">MASTERPIECE RECLAIMED!</h1>
+            <p>You defeated the Head Designer and got all the tables!</p>
+            <p>Sandy returns to her workshop a legend.</p>
+            <button onclick="location.reload()">NEW GAME</button>
+        </div>
+    </div>
+</div>
+
+<script>
+/** * SANDY'S TABLE QUEST
+ * Single-file Raycasting Engine & Game Logic
+ */
+
+// --- Constants & Config ---
+const SCREEN_WIDTH = 320;
+const SCREEN_HEIGHT = 200; // Rendering resolution (upscaled by CSS)
+const TICK_RATE = 30;
+const FOV = Math.PI / 3;
+const BLOCK_SIZE = 64;
+const MAP_SIZE = 64;
+const MINI_MAP_SCALE = 0.2;
+const MAX_DEPTH = 20; // Max render distance in blocks
+
+// --- Audio Context ---
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+let audioCtx;
+
+function initAudio() {
+    if (!audioCtx) audioCtx = new AudioContext();
+}
+
+function playSound(type) {
+    if (!audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    const now = audioCtx.currentTime;
+    
+    if (type === 'shoot') {
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(400, now);
+        osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
+        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+        osc.start(now);
+        osc.stop(now + 0.1);
+    } else if (type === 'hit') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(100, now);
+        osc.frequency.linearRampToValueAtTime(50, now + 0.1);
+        gain.gain.setValueAtTime(0.1, now);
+        osc.start(now);
+        osc.stop(now + 0.1);
+    } else if (type === 'collect') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(800, now);
+        osc.frequency.setValueAtTime(1200, now + 0.1);
+        gain.gain.setValueAtTime(0.1, now);
+        osc.start(now);
+        osc.stop(now + 0.2);
+    } else if (type === 'door') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(100, now);
+        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.linearRampToValueAtTime(0, now + 0.5);
+        osc.start(now);
+        osc.stop(now + 0.5);
+    } else if (type === 'step') {
+        // White noise burst for step
+        const bufferSize = audioCtx.sampleRate * 0.05; // 50ms
+        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+            data[i] = Math.random() * 2 - 1;
+        }
+        const noise = audioCtx.createBufferSource();
+        noise.buffer = buffer;
+        noise.connect(gain);
+        gain.gain.setValueAtTime(0.05, now);
+        gain.gain.linearRampToValueAtTime(0, now + 0.05);
+        noise.start(now);
+    } else if (type === 'alert') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(600, now);
+        osc.frequency.linearRampToValueAtTime(800, now + 0.1);
+        gain.gain.setValueAtTime(0.05, now);
+        gain.gain.linearRampToValueAtTime(0, now + 0.2);
+        osc.start(now);
+        osc.stop(now + 0.2);
+    }
+}
+
+// --- Asset Generation (Procedural Textures) ---
+// We generate textures onto offscreen canvases to use as images.
+const textures = {};
+const sprites = {};
+
+function createTexture(name, color, type = 'solid') {
+    const cvs = document.createElement('canvas');
+    cvs.width = 64;
+    cvs.height = 64;
+    const ctx = cvs.getContext('2d');
+    
+    // Background
+    ctx.fillStyle = color;
+    ctx.fillRect(0,0,64,64);
+
+    if (type === 'brick') {
+        ctx.fillStyle = 'rgba(0,0,0,0.2)';
+        ctx.fillRect(0, 30, 64, 4);
+        ctx.fillRect(30, 0, 4, 32);
+        ctx.fillRect(0, 0, 4, 32);
+        ctx.fillRect(15, 32, 4, 32);
+        ctx.fillStyle = 'rgba(255,255,255,0.1)';
+        for(let i=0; i<50; i++) ctx.fillRect(Math.random()*64, Math.random()*64, 2, 2);
+    } else if (type === 'wood') {
+        ctx.fillStyle = 'rgba(60, 30, 0, 0.3)';
+        for(let i=0; i<8; i++) {
+            ctx.fillRect(i*8, 0, 4, 64);
+        }
+    } else if (type === 'elevator') {
+        ctx.fillStyle = '#silver';
+        ctx.fillRect(2,2,60,60);
+        ctx.fillStyle = '#333';
+        ctx.fillRect(30, 2, 4, 60); // Door split
+        ctx.fillStyle = 'red';
+        ctx.fillRect(50, 30, 6, 6); // Button
+    }
+
+    textures[name] = cvs;
+}
+
+function createSprite(name, drawFn) {
+    const cvs = document.createElement('canvas');
+    cvs.width = 64;
+    cvs.height = 64;
+    const ctx = cvs.getContext('2d');
+    drawFn(ctx);
+    sprites[name] = cvs;
+    return cvs.toDataURL(); // Return base64 for HUD
+}
+
+// Generate Assets
+createTexture('wall', '#888', 'brick');
+createTexture('wood', '#8B4513', 'wood');
+createTexture('door', '#555', 'elevator');
+createTexture('floor', '#333');
+createTexture('ceil', '#222');
+
+// Sprite: Table
+createSprite('table', (ctx) => {
+    ctx.fillStyle = '#8B4513';
+    ctx.fillRect(10, 20, 44, 10); // Top
+    ctx.fillRect(14, 30, 6, 30); // Leg L
+    ctx.fillRect(44, 30, 6, 30); // Leg R
+    ctx.fillStyle = '#A0522D'; // Highlight
+    ctx.fillRect(12, 22, 40, 4);
+});
+
+// Sprite: Enemy (Designer)
+createSprite('enemy_idle', (ctx) => {
+    ctx.fillStyle = '#000080'; // Suit
+    ctx.fillRect(20, 30, 24, 34);
+    ctx.fillStyle = '#F0C0A0'; // Face
+    ctx.fillRect(24, 10, 16, 16); 
+    ctx.fillStyle = '#fff'; // Shirt
+    ctx.fillRect(28, 30, 8, 10);
+    ctx.fillStyle = '#f00'; // Tie
+    ctx.fillRect(30, 32, 4, 12);
+});
+
+createSprite('enemy_dead', (ctx) => {
+    ctx.fillStyle = '#000080';
+    ctx.fillRect(10, 50, 44, 10); // Lying down
+    ctx.fillStyle = '#f00'; // Blood/Paint
+    ctx.beginPath();
+    ctx.arc(32, 50, 10, 0, Math.PI*2);
+    ctx.fill();
+});
+
+// Sprite: Ammo (Paint Bucket)
+createSprite('ammo', (ctx) => {
+    ctx.fillStyle = '#bbb';
+    ctx.fillRect(20, 20, 24, 30);
+    ctx.fillStyle = '#00f'; // Blue paint
+    ctx.fillRect(22, 22, 20, 10);
+    ctx.strokeStyle = '#888';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(32, 20, 10, Math.PI, 0); ctx.stroke(); // Handle
+});
+
+// Sprite: Health (Polish)
+createSprite('health', (ctx) => {
+    ctx.fillStyle = '#d4af37'; // Gold bottle
+    ctx.fillRect(24, 20, 16, 40);
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(28, 14, 8, 6); // Cap
+    ctx.fillStyle = 'red';
+    ctx.font = '20px monospace';
+    ctx.fillText('+', 27, 45);
+});
+
+// HUD Face - Updated for Sandy (60s, short brown hair, glasses)
+const faceHappy = createSprite('face_happy', (ctx) => {
+    // Background
+    ctx.fillStyle = '#444'; ctx.fillRect(0,0,64,64);
+    
+    // Skin (Slightly more matured tone)
+    ctx.fillStyle = '#e0ac69'; 
+    ctx.beginPath(); ctx.arc(32,32, 26, 0, Math.PI*2); ctx.fill();
+    
+    // Hair (Short Brown Bob)
+    ctx.fillStyle = '#5D4037'; 
+    ctx.beginPath(); 
+    ctx.arc(32, 28, 28, Math.PI, 0); // Top
+    ctx.lineTo(58, 45); // Right side
+    ctx.lineTo(50, 45); // Trim
+    ctx.lineTo(50, 28); 
+    ctx.lineTo(14, 28);
+    ctx.lineTo(14, 45); // Left side trim
+    ctx.lineTo(6, 45); 
+    ctx.fill();
+
+    // Wrinkles (Age lines)
+    ctx.strokeStyle = '#c68c53';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(20, 40); ctx.lineTo(24, 42); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(44, 40); ctx.lineTo(40, 42); ctx.stroke();
+
+    // Eyes
+    ctx.fillStyle = '#000'; 
+    ctx.fillRect(20, 28, 6, 6); ctx.fillRect(38, 28, 6, 6);
+
+    // Glasses
+    ctx.strokeStyle = '#333';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(18, 26, 10, 10);
+    ctx.strokeRect(36, 26, 10, 10);
+    ctx.beginPath(); ctx.moveTo(28, 31); ctx.lineTo(36, 31); ctx.stroke(); // Bridge
+
+    // Smile
+    ctx.beginPath(); ctx.arc(32, 48, 8, 0, Math.PI); ctx.stroke(); 
+});
+
+const faceOuch = createSprite('face_ouch', (ctx) => {
+    // Background
+    ctx.fillStyle = '#444'; ctx.fillRect(0,0,64,64);
+
+    // Skin
+    ctx.fillStyle = '#e0ac69'; 
+    ctx.beginPath(); ctx.arc(32,32, 26, 0, Math.PI*2); ctx.fill();
+
+    // Hair
+    ctx.fillStyle = '#5D4037'; 
+    ctx.beginPath(); ctx.arc(32, 28, 28, Math.PI, 0); ctx.lineTo(58,45); ctx.lineTo(6,45); ctx.fill();
+
+    // Glasses (Askew)
+    ctx.strokeStyle = '#333';
+    ctx.lineWidth = 2;
+    ctx.save();
+    ctx.translate(32, 32);
+    ctx.rotate(0.2);
+    ctx.strokeRect(-14, -6, 10, 10);
+    ctx.strokeRect(4, -6, 10, 10);
+    ctx.beginPath(); ctx.moveTo(-4, -1); ctx.lineTo(4, -1); ctx.stroke();
+    ctx.restore();
+
+    // Eyes (Closed/Wince)
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(18, 28); ctx.lineTo(26, 32); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(36, 32); ctx.lineTo(44, 28); ctx.stroke();
+
+    // Mouth (Ouch)
+    ctx.fillStyle = '#000';
+    ctx.beginPath(); ctx.arc(32, 52, 6, 0, Math.PI*2); ctx.fill(); 
+});
+
+// --- Game State & Map ---
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d', { alpha: false });
+const hudHealth = document.getElementById('hud-health');
+const hudAmmo = document.getElementById('hud-ammo');
+const hudTables = document.getElementById('hud-tables');
+const hudFloor = document.getElementById('hud-floor');
+const faceImg = document.getElementById('face-img');
+
+// 0: Empty, 1: Wall, 2: Wood Wall, 9: Elevator
+// 2D Array generated by Level Loader
+let worldMap = [];
+let mapWidth = 0;
+let mapHeight = 0;
+
+let player = {
+    x: 0, y: 0, dir: 0, // x, y in block coords
+    rot: 0, // Rotation in radians
+    speed: 0.1,
+    rotSpeed: 0.045, // SLOWER TURNING
+    health: 100,
+    ammo: 20,
+    tables: 0
+};
+
+let input = {
+    up: false, down: false, left: false, right: false, shoot: false
+};
+
+let gameObjects = []; // Enemies, Items
+let rays = []; // For rendering sprites correctly
+let level = 1;
+let requiredTables = 0;
+let gameState = 'start'; // start, play, win, lose
+let animationFrameId;
+let lastTime = 0;
+let gunOffset = 0; // Animation for gun
+let gunCoolDown = 0;
+let lastStepTime = 0; // For audio timing
+
+// Levels (Simple grid strings)
+// .: Empty, #: Wall, W: Wood, E: Elevator, T: Table, S: Start, D: Designer (Enemy), A: Ammo, H: Health
+const levels = [
+    [
+        "################",
+        "#S.............#",
+        "#..##########..#",
+        "#..#...D....#..#",
+        "#..#...T....#..#",
+        "#..#...D....#..#",
+        "#..##########..#",
+        "#..............#",
+        "#######..#######",
+        "#.....#..#.....#",
+        "#..T..#..#..A..#",
+        "#.....#..#.....#",
+        "#######..#######",
+        "#..............#",
+        "#.......E......#",
+        "################"
+    ],
+    [
+        "####################",
+        "#S.................#",
+        "####.###.###.###.###",
+        "#....#...#...#.....#",
+        "#.T..#...D...#..T..#",
+        "#....#...#...#.....#",
+        "####.###.###.###.###",
+        "#..................#",
+        "#.####.######.####.#",
+        "#.#..#.#....#.#..#.#",
+        "#.#..#.#.T..#.#..#.#",
+        "#.#..#.#....#.#..#.#",
+        "#.####.######.####.#",
+        "#...D....D....D....#",
+        "#..................#",
+        "#........A.........#",
+        "#........H.........#",
+        "#..................#",
+        "##########E#########",
+        "####################"
+    ]
+];
+
+// --- Fake Loading Sequence ---
+window.onload = function() {
+    simulateLoading();
+};
+
+function simulateLoading() {
+    const bar = document.getElementById('load-bar');
+    const text = document.getElementById('load-text');
+    let width = 0;
+    
+    const interval = setInterval(() => {
+        width += Math.random() * 5;
+        if (width >= 100) {
+            width = 100;
+            clearInterval(interval);
+            text.innerText = "PRESS ENTER";
+            setTimeout(() => {
+                document.getElementById('loading-screen').classList.add('hidden');
+                document.getElementById('start-screen').classList.remove('hidden');
+                // Pre-render faces to ensure they show up
+                updateHUD();
+                
+                // Add ENTER key listener
+                window.addEventListener('keydown', function enterStart(e) {
+                    if (e.code === 'Enter' && gameState === 'start') {
+                        startGame();
+                        window.removeEventListener('keydown', enterStart);
+                    }
+                });
+            }, 500);
+        }
+        bar.style.width = width + "%";
+        
+        // Random flavor text
+        if (width > 30 && width < 35) text.innerText = "Polishing Wood Textures...";
+        if (width > 60 && width < 65) text.innerText = "Mixing Paint Ammo...";
+        if (width > 90 && width < 95) text.innerText = "Sanding Edges...";
+        
+    }, 50);
+}
+
+
+// --- Engine Core ---
+
+function loadLevel(lvlIdx) {
+    if (lvlIdx >= levels.length) {
+        showScreen('victory-screen');
+        gameState = 'victory';
+        return;
+    }
+    
+    level = lvlIdx + 1;
+    const layout = levels[lvlIdx];
+    mapHeight = layout.length;
+    mapWidth = layout[0].length;
+    worldMap = new Int8Array(mapWidth * mapHeight);
+    gameObjects = [];
+    player.tables = 0;
+    requiredTables = 0;
+
+    for (let y = 0; y < mapHeight; y++) {
+        for (let x = 0; x < mapWidth; x++) {
+            const char = layout[y][x];
+            let type = 0;
+            if (char === '#') type = 1;
+            else if (char === 'W') type = 2;
+            else if (char === 'E') type = 9;
+            
+            worldMap[y * mapWidth + x] = type;
+
+            // Objects
+            if (char === 'S') { player.x = x + 0.5; player.y = y + 0.5; player.rot = Math.PI / 2; }
+            else if (char === 'T') { gameObjects.push({x: x+0.5, y: y+0.5, type: 'table', active: true}); requiredTables++; }
+            else if (char === 'D') { gameObjects.push({x: x+0.5, y: y+0.5, type: 'enemy', active: true, health: 30, state: 'idle'}); }
+            else if (char === 'A') { gameObjects.push({x: x+0.5, y: y+0.5, type: 'ammo', active: true}); }
+            else if (char === 'H') { gameObjects.push({x: x+0.5, y: y+0.5, type: 'health', active: true}); }
+        }
+    }
+    
+    hudFloor.innerText = level;
+    updateHUD();
+}
+
+function startGame() {
+    initAudio();
+    player.health = 100;
+    player.ammo = 50;
+    loadLevel(0);
+    gameState = 'play';
+    hideScreens();
+    document.getElementById('hud').classList.remove('hidden');
+    lastTime = performance.now();
+    requestAnimationFrame(gameLoop);
+}
+
+function hideScreens() {
+    document.querySelectorAll('.screen').forEach(el => el.classList.add('hidden'));
+}
+
+function showScreen(id) {
+    document.getElementById(id).classList.remove('hidden');
+}
+
+function updateHUD() {
+    hudHealth.innerText = Math.floor(player.health) + "%";
+    hudAmmo.innerText = player.ammo;
+    hudTables.innerText = player.tables + "/" + requiredTables;
+    // Ensure src is updated properly
+    const newSrc = player.health > 50 ? faceHappy : faceOuch;
+    if (faceImg.src !== newSrc) {
+        faceImg.src = newSrc;
+    }
+}
+
+// --- Input Handling ---
+window.addEventListener('keydown', (e) => {
+    if (e.code === 'ArrowUp' || e.code === 'KeyW') input.up = true;
+    if (e.code === 'ArrowDown' || e.code === 'KeyS') input.down = true;
+    if (e.code === 'ArrowLeft' || e.code === 'KeyA') input.left = true;
+    if (e.code === 'ArrowRight' || e.code === 'KeyD') input.right = true;
+    if (e.code === 'Space') {
+        if (!input.shoot && gameState === 'play') fireWeapon();
+        input.shoot = true;
+    }
+});
+
+window.addEventListener('keyup', (e) => {
+    if (e.code === 'ArrowUp' || e.code === 'KeyW') input.up = false;
+    if (e.code === 'ArrowDown' || e.code === 'KeyS') input.down = false;
+    if (e.code === 'ArrowLeft' || e.code === 'KeyA') input.left = false;
+    if (e.code === 'ArrowRight' || e.code === 'KeyD') input.right = false;
+    if (e.code === 'Space') input.shoot = false;
+});
+
+// --- Game Logic ---
+
+function fireWeapon() {
+    if (player.ammo <= 0) return;
+    if (gunCoolDown > 0) return;
+    
+    player.ammo--;
+    playSound('shoot');
+    gunCoolDown = 10;
+    gunOffset = 20; // Kickback animation
+
+    // Raycast for Hitscan
+    let closestDist = 100;
+    let hitEnemy = null;
+
+    // Simple hitscan: Check all enemies to see if they are in center of screen and visible
+    gameObjects.forEach(obj => {
+        if (obj.type === 'enemy' && obj.active && obj.state !== 'dead') {
+            const dx = obj.x - player.x;
+            const dy = obj.y - player.y;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            
+            // Angle to enemy
+            let angleToEnemy = Math.atan2(dy, dx) - player.rot;
+            // Normalize
+            while (angleToEnemy < -Math.PI) angleToEnemy += Math.PI * 2;
+            while (angleToEnemy > Math.PI) angleToEnemy -= Math.PI * 2;
+
+            // If within narrow angle (aimed at) and close enough
+            if (Math.abs(angleToEnemy) < 0.1 && dist < 8) {
+                if (dist < closestDist) {
+                    // Raycast wall check to ensure no wall in between
+                    if (checkLineOfSight(player.x, player.y, obj.x, obj.y)) {
+                        closestDist = dist;
+                        hitEnemy = obj;
+                    }
+                }
+            }
+        }
+    });
+
+    if (hitEnemy) {
+        hitEnemy.health -= 15; // Damage
+        hitEnemy.state = 'pain';
+        playSound('hit');
+        if (hitEnemy.health <= 0) {
+            hitEnemy.state = 'dead';
+            hitEnemy.active = false; // Effectively logic-wise, but we still draw the body
+        }
+    }
+    updateHUD();
+}
+
+// Simple Ray marcher for Line of Sight
+function checkLineOfSight(x1, y1, x2, y2) {
+    const steps = Math.ceil(Math.sqrt((x2-x1)**2 + (y2-y1)**2) * 4);
+    const dx = (x2-x1)/steps;
+    const dy = (y2-y1)/steps;
+    for(let i=0; i<steps; i++) {
+        const cx = Math.floor(x1 + dx*i);
+        const cy = Math.floor(y1 + dy*i);
+        if (worldMap[cy * mapWidth + cx] > 0) return false;
+    }
+    return true;
+}
+
+function update(dt) {
+    if (gameState !== 'play') return;
+
+    // Rotation
+    if (input.left) player.rot -= player.rotSpeed;
+    if (input.right) player.rot += player.rotSpeed;
+
+    // Movement
+    let moveStep = player.speed; 
+    let newX = player.x;
+    let newY = player.y;
+    let moved = false;
+
+    if (input.up) {
+        newX += Math.cos(player.rot) * moveStep;
+        newY += Math.sin(player.rot) * moveStep;
+        moved = true;
+    }
+    if (input.down) {
+        newX -= Math.cos(player.rot) * moveStep;
+        newY -= Math.sin(player.rot) * moveStep;
+        moved = true;
+    }
+    
+    // Footsteps sound
+    if (moved) {
+        if (performance.now() - lastStepTime > 400) { // 400ms between steps
+            playSound('step');
+            lastStepTime = performance.now();
+        }
+    }
+
+    // Wall Collision
+    if (worldMap[Math.floor(newY) * mapWidth + Math.floor(player.x)] === 0) player.y = newY;
+    if (worldMap[Math.floor(player.y) * mapWidth + Math.floor(newX)] === 0) player.x = newX;
+
+    // Object Interaction
+    gameObjects.forEach(obj => {
+        if (!obj.active && obj.state !== 'dead') return;
+        const dx = player.x - obj.x;
+        const dy = player.y - obj.y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+
+        if (dist < 0.5) {
+            if (obj.type === 'table' && obj.active) {
+                obj.active = false;
+                player.tables++;
+                playSound('collect');
+                updateHUD();
+            } else if (obj.type === 'ammo' && obj.active) {
+                obj.active = false;
+                player.ammo += 10;
+                playSound('collect');
+                updateHUD();
+            } else if (obj.type === 'health' && obj.active) {
+                obj.active = false;
+                player.health = Math.min(100, player.health + 25);
+                playSound('collect');
+                updateHUD();
+            }
+        }
+
+        // Enemy AI
+        if (obj.type === 'enemy' && obj.active && obj.state !== 'dead') {
+            const hasLos = checkLineOfSight(player.x, player.y, obj.x, obj.y);
+            
+            // Alert logic
+            if (hasLos && dist < 10 && obj.state === 'idle') {
+                obj.state = 'chase';
+                playSound('alert');
+            }
+
+            // Chase
+            if (obj.state === 'chase' && dist > 1) {
+                obj.x += (player.x - obj.x) * 0.02;
+                obj.y += (player.y - obj.y) * 0.02;
+            }
+            // Attack
+            if (dist < 1.5) {
+                player.health -= 0.5; // Drain health
+                updateHUD();
+                if (player.health <= 0) {
+                    gameState = 'lose';
+                    showScreen('game-over-screen');
+                }
+            }
+        }
+    });
+
+    // Elevator Check
+    const blockX = Math.floor(player.x + Math.cos(player.rot)*0.5);
+    const blockY = Math.floor(player.y + Math.sin(player.rot)*0.5);
+    if (worldMap[blockY * mapWidth + blockX] === 9) {
+        if (player.tables >= requiredTables) {
+            playSound('door');
+            gameState = 'transition';
+            showScreen('win-screen');
+            setTimeout(() => {
+                loadLevel(level); // index is level-1, so this loads next
+                gameState = 'play';
+                hideScreens();
+                updateHUD();
+            }, 2000);
+        }
+    }
+
+    // Gun Anim
+    if (gunCoolDown > 0) gunCoolDown--;
+    if (gunOffset > 0) gunOffset -= 2;
+}
+
+// --- Raycaster & Renderer ---
+
+function drawGame() {
+    // Clear Floor/Ceiling
+    ctx.fillStyle = '#333'; // Floor
+    ctx.fillRect(0, SCREEN_HEIGHT/2, SCREEN_WIDTH, SCREEN_HEIGHT/2);
+    ctx.fillStyle = '#111'; // Ceiling
+    ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT/2);
+
+    // Cast Rays
+    rays = [];
+    for(let x = 0; x < SCREEN_WIDTH; x++) {
+        const rayAngle = (player.rot - FOV / 2.0) + (x / SCREEN_WIDTH) * FOV;
+        const eyeX = Math.cos(rayAngle);
+        const eyeY = Math.sin(rayAngle);
+
+        let distToWall = 0;
+        let hitWall = false;
+        let textureX = 0;
+        let wallType = 0;
+
+        let testX = Math.floor(player.x);
+        let testY = Math.floor(player.y);
+        let stepX = Math.sign(eyeX);
+        let stepY = Math.sign(eyeY);
+        let sideDistX = (stepX < 0 ? player.x - testX : testX + 1 - player.x) / Math.abs(eyeX);
+        let sideDistY = (stepY < 0 ? player.y - testY : testY + 1 - player.y) / Math.abs(eyeY);
+        let deltaDistX = Math.abs(1 / eyeX);
+        let deltaDistY = Math.abs(1 / eyeY);
+        let side = 0; // 0 for NS, 1 for EW
+
+        // DDA Algorithm
+        while (!hitWall && distToWall < MAX_DEPTH) {
+            if (sideDistX < sideDistY) {
+                sideDistX += deltaDistX;
+                testX += stepX;
+                side = 0;
+            } else {
+                sideDistY += deltaDistY;
+                testY += stepY;
+                side = 1;
+            }
+
+            if (testX < 0 || testX >= mapWidth || testY < 0 || testY >= mapHeight) {
+                hitWall = true; distToWall = MAX_DEPTH;
+            } else {
+                if (worldMap[testY * mapWidth + testX] > 0) {
+                    hitWall = true;
+                    wallType = worldMap[testY * mapWidth + testX];
+                }
+            }
+        }
+
+        // Calculate Distance
+        if (side === 0) distToWall = (testX - player.x + (1 - stepX) / 2) / eyeX;
+        else           distToWall = (testY - player.y + (1 - stepY) / 2) / eyeY;
+
+        // Fishbowl fix
+        let correctedDist = distToWall * Math.cos(rayAngle - player.rot);
+        
+        // Calculate Height
+        const ceiling = SCREEN_HEIGHT / 2.0 - SCREEN_HEIGHT / correctedDist;
+        const floor = SCREEN_HEIGHT - ceiling;
+        const wallHeight = floor - ceiling;
+
+        // Wall Texture Mapping (Simplified)
+        let wallX; 
+        if (side == 0) wallX = player.y + distToWall * eyeY;
+        else           wallX = player.x + distToWall * eyeX;
+        wallX -= Math.floor(wallX);
+        
+        // Select Texture
+        let tex = textures['wall'];
+        if (wallType === 2) tex = textures['wood'];
+        else if (wallType === 9) tex = textures['door'];
+
+        // Draw Wall Strip
+        // We use drawImage with slicing to simulate texture mapping
+        const texX = Math.floor(wallX * 64);
+        
+        // Shading
+        let brightness = 1.0 / (correctedDist * 0.5);
+        if (brightness > 1) brightness = 1;
+        ctx.globalAlpha = 1;
+        
+        if (distToWall < MAX_DEPTH) {
+            ctx.drawImage(tex, texX, 0, 1, 64, x, ceiling, 1, wallHeight);
+            
+            // Darken sides for fake lighting
+            if (side === 1) {
+                ctx.fillStyle = `rgba(0,0,0,0.3)`;
+                ctx.fillRect(x, ceiling, 1, wallHeight);
+            }
+            // Distance fog
+            ctx.fillStyle = `rgba(0,0,0,${Math.min(1, distToWall/15)})`;
+            ctx.fillRect(x, ceiling, 1, wallHeight);
+        }
+
+        rays[x] = distToWall; // Buffer for sprite z-culling
+    }
+
+    // Draw Sprites
+    drawSprites();
+
+    // Draw Weapon
+    drawWeapon();
+}
+
+function drawSprites() {
+    // 1. Calculate distance to each sprite
+    gameObjects.forEach(sprite => {
+        sprite.dist = Math.sqrt((player.x - sprite.x)**2 + (player.y - sprite.y)**2);
+    });
+
+    // 2. Sort far to near
+    gameObjects.sort((a, b) => b.dist - a.dist);
+
+    // 3. Project and Draw
+    gameObjects.forEach(sprite => {
+        if (!sprite.active && sprite.state !== 'dead') return;
+        if (sprite.dist < 0.2) return; // Clipping
+
+        const dx = sprite.x - player.x;
+        const dy = sprite.y - player.y;
+
+        // Transform sprite with the inverse camera matrix
+        // [ planeX   dirX ] -1                                       [ dirY      -dirX ]
+        // [               ]       =  1/(planeX*dirY-dirX*planeY) * [                 ]
+        // [ planeY   dirY ]                                          [ -planeY  planeX ]
+
+        // Simplified projection logic
+        const spriteDir = Math.atan2(dy, dx) - player.rot;
+        let spriteAngle = spriteDir;
+        while (spriteAngle < -Math.PI) spriteAngle += Math.PI * 2;
+        while (spriteAngle > Math.PI) spriteAngle -= Math.PI * 2;
+
+        // Is it in front?
+        if (Math.abs(spriteAngle) < FOV / 1.5) {
+            const screenX = (0.5 * (spriteAngle / (FOV / 2)) + 0.5) * SCREEN_WIDTH;
+            const spriteHeight = Math.abs(SCREEN_HEIGHT / sprite.dist);
+            const spriteTop = (SCREEN_HEIGHT - spriteHeight) / 2;
+            const spriteWidth = spriteHeight; // Square sprites
+
+            // Z-Buffer check on the center pixel of the sprite
+            const checkX = Math.floor(Math.max(0, Math.min(SCREEN_WIDTH-1, screenX)));
+            
+            if (rays[checkX] > sprite.dist) {
+                let img = null;
+                if (sprite.type === 'table') img = sprites['table'];
+                else if (sprite.type === 'ammo') img = sprites['ammo'];
+                else if (sprite.type === 'health') img = sprites['health'];
+                else if (sprite.type === 'enemy') {
+                    img = sprite.state === 'dead' ? sprites['enemy_dead'] : sprites['enemy_idle'];
+                }
+
+                if (img) {
+                    ctx.drawImage(img, screenX - spriteWidth/2, spriteTop + (sprite.dist > 0 ? 20/sprite.dist : 0), spriteWidth, spriteHeight);
+                }
+            }
+        }
+    });
+}
+
+function drawWeapon() {
+    // Simple Paintbrush drawn with canvas primitives relative to screen
+    const center = SCREEN_WIDTH / 2;
+    const bottom = SCREEN_HEIGHT;
+    const bob = Math.sin(Date.now() / 150) * (input.up || input.down ? 10 : 0);
+    const recoil = gunOffset;
+
+    const x = center + 100 - recoil/2;
+    const y = bottom - bob + recoil;
+
+    // Brush Handle
+    ctx.fillStyle = '#8B4513';
+    ctx.fillRect(x - 20, y - 100, 40, 100);
+    
+    // Metal band
+    ctx.fillStyle = '#aaa';
+    ctx.fillRect(x - 25, y - 120, 50, 20);
+
+    // Bristles / Paint
+    ctx.fillStyle = '#00f'; // Blue Paint
+    ctx.beginPath();
+    ctx.moveTo(x - 25, y - 120);
+    ctx.lineTo(x + 25, y - 120);
+    ctx.lineTo(x + 10, y - 160);
+    ctx.lineTo(x - 10, y - 160);
+    ctx.fill();
+
+    // Drips
+    if (Math.random() > 0.9) {
+        ctx.fillStyle = '#00f';
+        ctx.fillRect(x + (Math.random()*40 - 20), y - 160 + Math.random()*20, 4, 4);
+    }
+}
+
+// --- Main Loop ---
+function gameLoop(timestamp) {
+    if (gameState !== 'play') return;
+
+    // Time delta (unused for physics simplicty, but good for frames)
+    const dt = timestamp - lastTime;
+    lastTime = timestamp;
+
+    update(dt);
+    drawGame();
+
+    animationFrameId = requestAnimationFrame(gameLoop);
+}
+
+// Initialize sprites for rendering
+// Convert sprite canvases to Image objects for drawImage performance? 
+// No, drawImage accepts canvases directly!
+
+</script>
+</body>
+</html>
