@@ -30,11 +30,10 @@ Replenishes player ammunition.
 ### Health (`H`)
 Restores player health.
 
-| Property | Value |
-|:---|:---|
-| Character | `H` |
-| Sprite | `health` (gold bottle) |
-| **Amount Given** | **+25 HP** (capped at 100) |
+- **Health**: ('H') Restores +25 HP (up to 100).
+  - *Sprite*: Floating red/orange Fritos bag.
+  - *Sound*: 'munch' (crunchy eating sound).
+  - *Use*: Player must be injured to collect.
 
 ### Table Money (`$`)
 Bonus score collectibles placed throughout levels.
