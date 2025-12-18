@@ -27,8 +27,9 @@ Procedural SFX for game actions:
 | `shoot` | Frequency sweep (Sawtooth) |
 | `hit` | Impact sound when damaged |
 | `step` | Short noise burst for footsteps |
-| `collect` | High-pitched sine/triangle ping |
-| `alert` | Enemy spots player |
+| 'collect' | Happy Chime | Item pickup (Table, Ammo, Weapon) |
+| 'munch' | Crunching Sound | Health pickup (Fritos bag) |
+| 'money' | Cha-ching / Coin | Money/Gold pickup |
 | `door_open` | Heavy door creaking/sliding |
 | `enemy_death` | Satisfying defeat sound |
 | `elevator` | Mechanical ascending with ding |

@@ -4,10 +4,10 @@
  */
 const sprites = {};
 
-function createSprite(name, drawFn) {
+function createSprite(name, drawFn, width = 64, height = 64) {
     const cvs = document.createElement('canvas');
-    cvs.width = 64;
-    cvs.height = 64;
+    cvs.width = width;
+    cvs.height = height;
     const ctx = cvs.getContext('2d');
     drawFn(ctx);
     sprites[name] = cvs;
@@ -218,16 +218,36 @@ createSprite('ammo', (ctx) => {
     ctx.beginPath(); ctx.arc(32, 20, 10, Math.PI, 0); ctx.stroke(); // Handle
 });
 
-// Sprite: Health (Polish)
+// Sprite: Health (Fritos Bag)
 createSprite('health', (ctx) => {
-    ctx.fillStyle = '#d4af37'; // Gold bottle
-    ctx.fillRect(24, 20, 16, 40);
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(28, 14, 8, 6); // Cap
-    ctx.fillStyle = 'red';
-    ctx.font = '20px monospace';
-    ctx.fillText('+', 27, 45);
-});
+    if (typeof ASSET_DATA !== 'undefined' && ASSET_DATA.fritos) {
+        const img = new Image();
+        img.onload = () => {
+            // High-res clear
+            ctx.clearRect(0, 0, 256, 256);
+
+            // Shadow (scaled up 4x from original 32,56,16,6)
+            ctx.fillStyle = 'rgba(0,0,0,0.4)';
+            ctx.beginPath();
+            ctx.ellipse(128, 224, 64, 24, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw Bag (Centered and sized to fit 256x256)
+            // Scaling up the previous 12,10,40,44 rect by ~4x
+            ctx.drawImage(img, 48, 40, 160, 176);
+        };
+        img.src = ASSET_DATA.fritos;
+    } else {
+        // Fallback Error Box (Scaled)
+        ctx.fillStyle = '#ff00ff';
+        ctx.fillRect(64, 64, 128, 128);
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 60px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText("?", 128, 128);
+    }
+}, 256, 256); // Use 256x256 resolution
 
 // Sprite: Table Money (Gold Coin Stack)
 createSprite('money', (ctx) => {

@@ -764,6 +764,78 @@ function playSound(type) {
         osc.start(now);
         osc.stop(now + 0.2);
 
+    } else if (type === 'munch') {
+        const makeCrunch = (t, intensity = 1.0) => {
+            const noise = createNoiseBuffer();
+
+            // Layer 1: The Snap (High frequency bite)
+            // Emphasizes the initial break of the chip
+            const snapSrc = audioCtx.createBufferSource();
+            snapSrc.buffer = noise;
+            const snapFilter = audioCtx.createBiquadFilter();
+            snapFilter.type = 'highpass';
+            snapFilter.frequency.value = 6000;
+            const snapGain = audioCtx.createGain();
+
+            snapSrc.connect(snapFilter);
+            snapFilter.connect(snapGain);
+            snapGain.connect(masterGain);
+
+            snapGain.gain.setValueAtTime(0, now + t);
+            snapGain.gain.linearRampToValueAtTime(0.8 * intensity, now + t + 0.01);
+            snapGain.gain.exponentialRampToValueAtTime(0.01, now + t + 0.05);
+
+            snapSrc.start(now + t);
+            snapSrc.stop(now + t + 0.06);
+
+            // Layer 2: The Crumble (Mid texture)
+            // Simulates the texture of the chip breaking apart
+            const crumbSrc = audioCtx.createBufferSource();
+            crumbSrc.buffer = noise;
+            const crumbFilter = audioCtx.createBiquadFilter();
+            crumbFilter.type = 'bandpass';
+            crumbFilter.frequency.value = 1500 + Math.random() * 500; // Variance
+            crumbFilter.Q.value = 1.5;
+            const crumbGain = audioCtx.createGain();
+
+            crumbSrc.connect(crumbFilter);
+            crumbFilter.connect(crumbGain);
+            crumbGain.connect(masterGain);
+            crumbGain.connect(reverbNode);
+
+            crumbGain.gain.setValueAtTime(0, now + t);
+            crumbGain.gain.linearRampToValueAtTime(0.6 * intensity, now + t + 0.02);
+            crumbGain.gain.exponentialRampToValueAtTime(0.01, now + t + 0.15);
+
+            crumbSrc.start(now + t);
+            crumbSrc.stop(now + t + 0.2);
+
+            // Layer 3: Body (Low thump)
+            // "Inside head" sound
+            const bodySrc = audioCtx.createBufferSource();
+            bodySrc.buffer = noise;
+            const bodyFilter = audioCtx.createBiquadFilter();
+            bodyFilter.type = 'lowpass';
+            bodyFilter.frequency.value = 600;
+            const bodyGain = audioCtx.createGain();
+
+            bodySrc.connect(bodyFilter);
+            bodyFilter.connect(bodyGain);
+            bodyGain.connect(masterGain);
+
+            bodyGain.gain.setValueAtTime(0, now + t);
+            bodyGain.gain.linearRampToValueAtTime(0.8 * intensity, now + t + 0.01);
+            bodyGain.gain.exponentialRampToValueAtTime(0.01, now + t + 0.1);
+
+            bodySrc.start(now + t);
+            bodySrc.stop(now + t + 0.15);
+        };
+
+        // Sequence: Main Crunch -> Chewing...
+        makeCrunch(0.0, 1.0);  // BIG BITE
+        makeCrunch(0.12, 0.5); // Chew
+        makeCrunch(0.24, 0.3); // Chew
+
     } else if (type === 'collect') {
         // Happy Chime
         const mkNote = (f, t, d) => playNote({

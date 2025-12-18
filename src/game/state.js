@@ -409,7 +409,7 @@ function update(dt) {
             } else if (obj.type === 'health' && obj.active && player.health < 100) {
                 obj.active = false;
                 player.health = Math.min(100, player.health + 25);
-                playSound('collect');
+                playSound('munch');
                 updateHUD();
             } else if (obj.type === 'weaponPickup' && obj.active) {
                 // Check if player already has this weapon
