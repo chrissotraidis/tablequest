@@ -63,3 +63,59 @@ Before finalizing a level, verify:
 - [ ] Mix of `A`, `H`, and `D` tiles throughout
 - [ ] Boss level has exactly 1 `G` tile
 
+## CRITICAL: Row Width Consistency
+
+> [!CAUTION]
+> **ALL rows in a level MUST have the EXACT SAME character count.** This is the most common source of bugs.
+
+The level parser creates a 2D grid based on row width. If rows have inconsistent widths:
+- Objects spawn in wrong positions
+- Walls don't align properly
+- Tables/items become unreachable
+- The map appears broken in unexpected ways
+
+### Verification
+
+Check row widths with this command:
+```bash
+awk 'NR>=START && NR<=END {gsub(/^[^"]*"/, ""); gsub(/".*$/, ""); print NR": "length" chars"}' src/game/levels.js
+```
+
+Replace `START` and `END` with the line numbers of your level.
+
+### Standard Widths
+
+| Level | Width (chars) |
+|-------|---------------|
+| Level 1 | 40 |
+| Level 2 | 40 |
+| Level 3 | 48 |
+| Level 4 | 48 |
+
+## CRITICAL: No Reserved Characters in Text
+
+> [!CAUTION]
+> **Never use map characters (T, D, A, H, etc.) in decorative text within level strings.**
+
+The parser scans ALL characters in each row. If you write decorative text like:
+```
+"M.....CONTROL ROOM.....M"  // BAD! The 'T' in CONTROL is counted as a table!
+```
+
+This will spawn an unintended table object. Instead, omit text labels or use only safe characters:
+```
+"M......................M"  // GOOD - no text
+```
+
+### Reserved Characters (Never Use in Text)
+- `T` - Table
+- `D` - Enemy
+- `G` - Boss
+- `A` - Ammo
+- `H` - Health
+- `L` - Table Leg weapon
+- `S` - Start position
+- `E` - Elevator
+- `X` - Gate
+- `Z` - Gold Bar
+- `$` - Money
