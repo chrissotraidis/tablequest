@@ -29,79 +29,65 @@ function initGame() {
         faceImg = document.getElementById('face-img');
 
         initInput();
-        simulateLoading();
+        startBootSequence();
     } catch (e) {
         console.error("Game Init Failed:", e);
         alert("Game Error: " + e.message);
     }
 }
 
-// Simplified and Robust Loading Logic
-function simulateLoading() {
-    const bar = document.getElementById('load-bar');
-    const text = document.getElementById('load-text');
-    let width = 0;
+// Boot Sequence: Memory Screen → Title Screen (music starts) → Menu
+function startBootSequence() {
+    const memoryScreen = document.getElementById('memory-screen');
+    const titleScreen = document.getElementById('title-screen');
 
-    // Safety Force Start
-    let loaded = false;
+    // Set background images (swapped based on actual image content)
+    memoryScreen.style.backgroundImage = `url(${titleScreenImg})`;
+    titleScreen.style.backgroundImage = `url(${memoryScreenImg})`;
 
-    const interval = setInterval(() => {
-        if (loaded) return;
+    // Step 1: Show memory screen, wait for any key
+    const handleMemoryKey = (e) => {
+        window.removeEventListener('keydown', handleMemoryKey);
+        window.removeEventListener('click', handleMemoryKey);
 
-        width += 2; // Consistent speed
-        if (width > 100) width = 100;
+        // Hide memory screen, show title screen
+        memoryScreen.classList.add('hidden');
+        titleScreen.classList.remove('hidden');
 
-        if (bar) bar.style.width = width + "%";
+        // Start music when title screen appears
+        initAudio();
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        startMenuMusic();
 
-        // Flavor Text
-        if (width === 30 && text) text.innerText = "Polishing Pixels...";
-        if (width === 60 && text) text.innerText = "Building World...";
-        if (width === 90 && text) text.innerText = "Readying Tables...";
+        // Step 2: Wait for another key to go to menu
+        const handleTitleKey = (e) => {
+            window.removeEventListener('keydown', handleTitleKey);
+            window.removeEventListener('click', handleTitleKey);
 
-        if (width >= 100) {
-            loaded = true;
-            clearInterval(interval);
-            if (text) {
-                text.innerText = "PRESS ENTER TO START";
-                text.classList.add('press-enter');
-            }
+            // Hide title screen, transition to menu
+            titleScreen.style.transition = 'opacity 0.5s';
+            titleScreen.style.opacity = '0';
+            setTimeout(() => {
+                titleScreen.classList.add('hidden');
+                titleScreen.style.opacity = '1';
 
-            const onStart = (e) => {
-                console.log("Interaction detected:", e.type, e.code);
-                if (e.code === 'Enter' || e.type === 'click') {
-                    console.log("Transitioning to Menu...");
-                    window.removeEventListener('keydown', onStart);
-                    window.removeEventListener('click', onStart); // Allow click too
+                gameState = 'menu';
+                console.log("State set to:", gameState);
+                lastTime = performance.now();
+                requestAnimationFrame(gameLoop);
 
-                    const screen = document.getElementById('loading-screen');
-                    if (screen) {
-                        screen.style.transition = 'opacity 0.5s';
-                        screen.style.opacity = '0';
-                        setTimeout(() => {
-                            console.log("Hiding loading screen");
-                            screen.classList.add('hidden');
-                        }, 500);
-                    }
+                updateHUD();
+                updateMenuDOM();
+                console.log("Menu DOM updated called.");
+            }, 500);
+        };
 
-                    gameState = 'menu';
-                    console.log("State set to:", gameState);
-                    lastTime = performance.now();
-                    requestAnimationFrame(gameLoop);
+        window.addEventListener('keydown', handleTitleKey);
+        window.addEventListener('click', handleTitleKey);
+    };
 
-                    initAudio();
-                    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-                    startMenuMusic();
-
-                    updateHUD();
-                    updateMenuDOM();
-                    console.log("Menu DOM updated called.");
-                }
-            };
-
-            window.addEventListener('keydown', onStart);
-            window.addEventListener('click', onStart); // Fallback interaction
-        }
-    }, 50);
+    window.addEventListener('keydown', handleMemoryKey);
+    window.addEventListener('click', handleMemoryKey);
 }
 
 let introTimeout = null;
