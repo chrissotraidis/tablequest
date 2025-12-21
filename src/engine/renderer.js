@@ -82,11 +82,13 @@ function drawGame() {
             let floorY = player.y + rowDistance * rayDirY0;
 
             for (let x = 0; x < SCREEN_WIDTH; x++) {
-                const cellX = Math.floor(floorX);
-                const cellY = Math.floor(floorY);
+                // Scale factor: larger = bigger tiles = less visible "swimming"
+                const FLOOR_TEXTURE_SCALE = 4.0;
+                const scaledFloorX = floorX / FLOOR_TEXTURE_SCALE;
+                const scaledFloorY = floorY / FLOOR_TEXTURE_SCALE;
 
-                const tx = Math.floor((floorX - cellX) * SIZE) & (SIZE - 1);
-                const ty = Math.floor((floorY - cellY) * SIZE) & (SIZE - 1);
+                const tx = Math.floor(scaledFloorX * SIZE) & (SIZE - 1);
+                const ty = Math.floor(scaledFloorY * SIZE) & (SIZE - 1);
 
                 floorX += rowStepX;
                 floorY += rowStepY;

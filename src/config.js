@@ -18,3 +18,4 @@ const MENU_COLORS = {
     highlight: '#d9a066', // Gold/Wood
     shadow: '#000'
 };
+
