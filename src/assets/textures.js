@@ -135,6 +135,40 @@ function createTexture(name, color, type = 'solid') {
             }
         }
 
+    } else if (type === 'tile') {
+        // Floor/ceiling tile - subtle grid pattern, minimal noise for stable visuals
+        // Draw tile grid lines
+        ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+        ctx.lineWidth = 2;
+        const tileSize = 64;
+        for (let y = 0; y <= SIZE; y += tileSize) {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(SIZE, y);
+            ctx.stroke();
+        }
+        for (let x = 0; x <= SIZE; x += tileSize) {
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, SIZE);
+            ctx.stroke();
+        }
+        // Subtle highlight on tile edges
+        ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+        ctx.lineWidth = 1;
+        for (let y = 2; y < SIZE; y += tileSize) {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(SIZE, y);
+            ctx.stroke();
+        }
+        for (let x = 2; x < SIZE; x += tileSize) {
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, SIZE);
+            ctx.stroke();
+        }
+
     } else if (type === 'wood') {
         ctx.fillStyle = 'rgba(30, 10, 0, 0.2)';
         for (let i = 0; i < SIZE; i += 2) {
@@ -203,8 +237,8 @@ function createTexture(name, color, type = 'solid') {
 createTexture('wall', '#777', 'brick');      // Type 1: Red brick wall
 createTexture('wood', '#8B5a2b', 'wood');    // Type 2: Wooden panels
 createTexture('door', '#555', 'elevator');   // Type 3: Metal door
-createTexture('floor', '#444');              // Floor
-createTexture('ceil', '#333');               // Ceiling
+createTexture('floor', '#444', 'tile');      // Floor - tile pattern for stable visuals
+createTexture('ceil', '#333', 'tile');       // Ceiling - tile pattern for stable visuals
 createTexture('gate', '#222', 'gate');       // Type 4: Locked gate
 
 // NEW TEXTURES for variety
