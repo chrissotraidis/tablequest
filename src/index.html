@@ -77,6 +77,32 @@
             z-index: 300;
         }
 
+        /* BOOT SEQUENCE SCREENS */
+        .boot-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-color: #000;
+            z-index: 400;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        #memory-screen {
+            z-index: 410;
+        }
+
+        #title-screen {
+            z-index: 405;
+        }
+
         .loading-title {
             font-family: 'Verdana', sans-serif;
             font-size: 40px;
@@ -544,108 +570,330 @@
             text-shadow: 0 0 4px rgba(217, 160, 102, 0.5);
         }
 
-        /* HD MENU STYLES */
+        /* HD MENU STYLES - WOLFENSTEIN 3D INSPIRED */
         #hd-menu {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle at center, #001840 0%, #000810 100%);
+            background:
+                /* Noise texture overlay */
+                url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E"),
+                /* Main gradient */
+                linear-gradient(180deg, #7A0000 0%, #580000 30%, #400000 70%, #2A0000 100%);
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
             z-index: 200;
             pointer-events: auto;
+            padding-top: 30px;
+            overflow: hidden;
+        }
+
+        /* CRT Scanlines Overlay */
+        #hd-menu::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(0deg,
+                    rgba(0, 0, 0, 0.1) 0px,
+                    rgba(0, 0, 0, 0.1) 1px,
+                    transparent 1px,
+                    transparent 3px);
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        /* Vignette Effect */
+        #hd-menu::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(ellipse at center, transparent 30%, rgba(0, 0, 0, 0.6) 100%);
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        /* Stone/Brick Border Frame */
+        .menu-frame {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
+            border: 4px solid;
+            border-image: linear-gradient(180deg, #666 0%, #444 50%, #333 100%) 1;
+            pointer-events: none;
+            z-index: 998;
+        }
+
+        /* Title Banner - Enhanced Metallic Chrome */
+        .menu-title-banner {
+            background: linear-gradient(180deg,
+                    #777 0%,
+                    #555 20%,
+                    #444 40%,
+                    #333 60%,
+                    #444 80%,
+                    #222 100%);
+            border: 4px solid;
+            border-top-color: #999;
+            border-left-color: #999;
+            border-bottom-color: #111;
+            border-right-color: #111;
+            padding: 12px 60px;
+            margin-bottom: 30px;
+            box-shadow:
+                0 6px 20px rgba(0, 0, 0, 0.8),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+            position: relative;
+            z-index: 10;
         }
 
         .menu-title {
-            font-family: 'Verdana', sans-serif;
-            font-size: 48px;
+            font-family: 'Times New Roman', Georgia, serif;
+            font-size: 36px;
             font-weight: bold;
-            color: #d9a066;
-            text-shadow: 4px 4px 0px #000, 0 0 20px rgba(217, 160, 102, 0.5);
-            margin-bottom: 10px;
-            text-transform: uppercase;
+            font-style: italic;
+            color: #fff;
+            text-shadow:
+                1px 1px 0 #B22222,
+                2px 2px 0 #8B0000,
+                3px 3px 0 #600,
+                4px 4px 8px rgba(0, 0, 0, 0.8),
+                0 0 20px rgba(255, 100, 100, 0.3);
+            text-transform: none;
+            letter-spacing: 3px;
+            margin: 0;
+            animation: titleGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes titleGlow {
+
+            0%,
+            100% {
+                text-shadow:
+                    1px 1px 0 #B22222,
+                    2px 2px 0 #8B0000,
+                    3px 3px 0 #600,
+                    4px 4px 8px rgba(0, 0, 0, 0.8),
+                    0 0 20px rgba(255, 100, 100, 0.3);
+            }
+
+            50% {
+                text-shadow:
+                    1px 1px 0 #B22222,
+                    2px 2px 0 #8B0000,
+                    3px 3px 0 #600,
+                    4px 4px 8px rgba(0, 0, 0, 0.8),
+                    0 0 30px rgba(255, 100, 100, 0.5),
+                    0 0 40px rgba(255, 50, 50, 0.3);
+            }
         }
 
         .menu-subtitle {
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            color: #8899aa;
-            margin-bottom: 50px;
-            letter-spacing: 2px;
+            display: none;
         }
 
-        .menu-item {
-            font-family: 'Courier New', monospace;
-            font-size: 24px;
-            color: #667788;
-            margin: 10px 0;
-            cursor: pointer;
-            transition: all 0.2s;
+        /* Menu Items Container */
+        #menu-items {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            padding-left: 60px;
+            margin-top: 15px;
             position: relative;
-            padding: 5px 20px;
+            z-index: 10;
+        }
+
+        /* Menu Items - Enhanced Wolf3D Style */
+        .menu-item {
+            font-family: 'Times New Roman', Georgia, serif;
+            font-size: 28px;
+            font-weight: bold;
+            color: #777;
+            margin: 8px 0;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            position: relative;
+            padding: 6px 25px 6px 50px;
+            text-shadow:
+                2px 2px 0 rgba(0, 0, 0, 0.9),
+                3px 3px 4px rgba(0, 0, 0, 0.5);
+            letter-spacing: 1px;
+        }
+
+        .menu-item:hover {
+            color: #aaa;
         }
 
         .menu-item.selected {
             color: #fff;
-            transform: scale(1.1);
-            text-shadow: 0 0 10px #fff;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-            border-left: 4px solid #d9a066;
-            border-right: 4px solid #d9a066;
+            text-shadow:
+                2px 2px 0 rgba(0, 0, 0, 0.9),
+                3px 3px 4px rgba(0, 0, 0, 0.5),
+                0 0 10px rgba(255, 255, 255, 0.2);
+            transform: none;
+            background: none;
+            border: none;
         }
 
+        /* Paintbrush Cursor with Animation */
+        .menu-item.selected::before {
+            content: '🖌️';
+            position: absolute;
+            left: 5px;
+            font-size: 24px;
+            filter: drop-shadow(2px 2px 3px rgba(0, 0, 0, 0.8));
+            animation: cursorBob 0.6s ease-in-out infinite;
+        }
+
+        @keyframes cursorBob {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            50% {
+                transform: translateX(5px);
+            }
+        }
+
+        /* Instructions Panel - Wolf3D Style */
         #menu-instructions {
-            background: rgba(0, 0, 0, 0.9);
-            padding: 40px;
-            border: 2px solid #d9a066;
-            max-width: 80%;
+            background: linear-gradient(180deg, #5A0000 0%, #400000 100%);
+            padding: 30px 50px;
+            border: 3px solid #666;
+            border-top-color: #888;
+            border-left-color: #888;
+            border-bottom-color: #333;
+            border-right-color: #333;
+            max-width: 70%;
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
+            text-align: left;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+        }
+
+        #menu-instructions h2 {
+            font-family: 'Times New Roman', Georgia, serif;
+            font-style: italic;
+            color: #fff;
+            text-shadow: 2px 2px 0 #600;
+            margin-bottom: 20px;
             text-align: center;
         }
 
-        .menu-footer {
-            margin-top: 20px;
-            font-size: 12px;
-            color: #d9a066;
-            animation: blink 1s infinite alternate;
+        #menu-instructions p {
+            font-family: 'Times New Roman', Georgia, serif;
+            font-size: 18px;
+            color: #ddd;
+            margin: 8px 0;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
         }
 
+        .menu-footer {
+            margin-top: 25px;
+            font-size: 14px;
+            font-family: 'Times New Roman', Georgia, serif;
+            color: #aaa;
+            text-align: center;
+            animation: blink 1.5s infinite alternate;
+        }
+
+        /* Level Select Panel - Wolf3D Style */
         #menu-level-select {
-            background: rgba(0, 0, 0, 0.9);
-            padding: 40px;
-            border: 2px solid #d9a066;
-            max-width: 80%;
+            background: linear-gradient(180deg, #5A0000 0%, #400000 100%);
+            padding: 30px 50px;
+            border: 3px solid #666;
+            border-top-color: #888;
+            border-left-color: #888;
+            border-bottom-color: #333;
+            border-right-color: #333;
+            max-width: 70%;
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
+            text-align: left;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+        }
+
+        #menu-level-select h2 {
+            font-family: 'Times New Roman', Georgia, serif;
+            font-style: italic;
+            color: #fff;
+            text-shadow: 2px 2px 0 #600;
+            margin-bottom: 15px;
             text-align: center;
         }
 
         .level-item {
-            font-family: 'Courier New', monospace;
-            font-size: 18px;
-            color: #667788;
-            margin: 8px 0;
+            font-family: 'Times New Roman', Georgia, serif;
+            font-size: 20px;
+            font-weight: bold;
+            color: #888;
+            margin: 6px 0;
             cursor: pointer;
-            transition: all 0.2s;
-            padding: 5px 15px;
+            transition: color 0.1s;
+            padding: 4px 20px 4px 35px;
+            position: relative;
+            text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.8);
+        }
+
+        .level-item:hover {
+            color: #bbb;
         }
 
         .level-item.selected {
             color: #fff;
-            transform: scale(1.05);
-            text-shadow: 0 0 10px #fff;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-            border-left: 3px solid #d9a066;
-            border-right: 3px solid #d9a066;
+            transform: none;
+            text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.8);
+            background: none;
+            border: none;
+        }
+
+        .level-item.selected::before {
+            content: '🖌️';
+            position: absolute;
+            left: 0;
+            font-size: 18px;
+            filter: drop-shadow(2px 2px 2px rgba(0, 0, 0, 0.5));
+        }
+
+        /* Footer Bar */
+        .menu-footer-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 35px;
+            background: linear-gradient(180deg, #444 0%, #333 50%, #222 100%);
+            border-top: 2px solid #666;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1001;
+            padding: 0 10px;
+        }
+
+        .menu-footer-bar span {
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            color: #999;
+            letter-spacing: 1px;
+            white-space: nowrap;
         }
 
         #debug-log {
@@ -821,8 +1069,14 @@
                 </div>
             </div>
 
+            <!-- BOOT SEQUENCE: MEMORY SCREEN -->
+            <div id="memory-screen" class="boot-screen"></div>
+
+            <!-- BOOT SEQUENCE: TITLE SCREEN -->
+            <div id="title-screen" class="boot-screen hidden"></div>
+
             <!-- HD LOADING SCREEN -->
-            <div id="loading-screen">
+            <div id="loading-screen" class="hidden">
                 <div class="loading-title">LOADING...</div>
                 <div class="loading-bar-container">
                     <div id="load-bar" class="loading-bar-fill"></div>
@@ -830,32 +1084,37 @@
                 <div id="load-text" class="loading-text">Initializing Paint Physics...</div>
             </div>
 
-            <!-- HD MENU OVERLAY -->
+            <!-- HD MENU OVERLAY - WOLFENSTEIN STYLE -->
             <div id="hd-menu" class="hidden">
-                <div class="menu-title">SANDY'S TABLE QUEST</div>
+                <div class="menu-frame"></div>
+                <div class="menu-title-banner">
+                    <div class="menu-title">Sandy's Table Quest</div>
+                </div>
                 <div class="menu-subtitle">The Furniture Operations</div>
                 <div id="menu-items">
-                    <div class="menu-item selected" data-idx="0">NEW GAME</div>
-                    <div class="menu-item" data-idx="1">LEVEL SELECT</div>
-                    <div class="menu-item" data-idx="2">INSTRUCTIONS</div>
-                    <div class="menu-item" data-idx="3">QUIT</div>
+                    <div class="menu-item selected" data-idx="0">New Game</div>
+                    <div class="menu-item" data-idx="1">Level Select</div>
+                    <div class="menu-item" data-idx="2">Instructions</div>
+                    <div class="menu-item" data-idx="3">Quit</div>
                 </div>
                 <div id="menu-instructions" class="hidden">
-                    <h2>INSTRUCTIONS</h2>
-                    <p>Reclaim your tables from the Cartel!</p>
-                    <p>WASD / Arrows to Move</p>
-                    <p>SPACE to Paint</p>
-                    <p>E to Open Doors</p>
+                    <h2>Instructions</h2>
+                    <p>🖌️ Reclaim your tables from the Cartel!</p>
+                    <p>⬅️➡️⬆️⬇️ WASD / Arrows to Move</p>
+                    <p>🔫 SPACE to Paint</p>
+                    <p>🚪 E to Open Doors</p>
                     <div class="menu-footer">PRESS ENTER OR ESC TO RETURN</div>
                 </div>
                 <div id="menu-level-select" class="hidden">
-                    <h2>LEVEL SELECT</h2>
-                    <p style="color: #888; font-size: 12px; margin-bottom: 20px;">Choose a level to start</p>
-                    <div class="level-item selected" data-level="0">LEVEL 1: THE OFFICE</div>
-                    <div class="level-item" data-level="1">LEVEL 2: THE DUNGEON</div>
-                    <div class="level-item" data-level="2">LEVEL 3: THE FACTORY</div>
-                    <div class="level-item" data-level="3">LEVEL 4: THE BOSS</div>
+                    <h2>Episode Select</h2>
+                    <div class="level-item selected" data-level="0">Episode 1: The Office</div>
+                    <div class="level-item" data-level="1">Episode 2: The Dungeon</div>
+                    <div class="level-item" data-level="2">Episode 3: The Factory</div>
+                    <div class="level-item" data-level="3">Episode 4: The Boss</div>
                     <div class="menu-footer">PRESS ENTER TO SELECT, ESC TO RETURN</div>
+                </div>
+                <div class="menu-footer-bar">
+                    <span>© 2025 ARTISAN SOFTWARE &nbsp;&nbsp;•&nbsp;&nbsp; v1.0</span>
                 </div>
             </div>
         </div> <!-- End UI Layer -->

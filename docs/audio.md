@@ -37,5 +37,8 @@ Procedural SFX for game actions:
 | `fanfare` | Victory celebration arpeggio |
 
 ## Usage
-Browser policy requires user interaction before audio starts. The `simulateLoading` function handles this by waiting for a 'click' or 'enter' event before calling `initAudio`.
+Browser policy requires user interaction before audio starts. The audio is initialized during the boot sequence:
+1. **Memory Screen** - User presses any key (no music)
+2. **Title Screen** - `initAudio()` and `startMenuMusic()` are called, music begins
+3. **Main Menu** - Music continues playing
 
