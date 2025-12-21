@@ -124,7 +124,7 @@ function startIntro() {
         container.style.top = '100%';
         container.style.animation = 'none';
         container.offsetHeight; // Force reflow
-        container.style.animation = 'introScroll 90s linear forwards';
+        container.style.animation = 'introScroll 60s linear forwards';
     }
     if (skipText) {
         skipText.style.display = 'block';
@@ -135,7 +135,7 @@ function startIntro() {
     // After scroll ends, show start prompt
     introTimeout = setTimeout(() => {
         showIntroStartPrompt();
-    }, 92000);
+    }, 62000);
 
     // Listen for skip/start
     window.addEventListener('keydown', handleIntroInput);

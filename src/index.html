@@ -193,19 +193,19 @@
             }
         }
 
-        /* STAR WARS STYLE INTRO SCROLL - SPACE THEMED */
+        /* WOLF3D STYLE INTRO SCROLL - BLOOD RED THEME */
         #intro-screen {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(to bottom, #000 0%, #0a0a1a 50%, #000 100%);
+            background: radial-gradient(ellipse at center, #1a0505 0%, #0a0000 60%, #000 100%);
             z-index: 1000;
             overflow: hidden;
         }
 
-        /* Animated star field */
+        /* CRT Scanline overlay */
         #intro-screen::before {
             content: '';
             position: absolute;
@@ -213,25 +213,43 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background-image:
-                radial-gradient(2px 2px at 20px 30px, #fff, transparent),
-                radial-gradient(2px 2px at 40px 70px, rgba(255, 255, 255, 0.8), transparent),
-                radial-gradient(1px 1px at 90px 40px, #fff, transparent),
-                radial-gradient(2px 2px at 160px 120px, rgba(255, 255, 255, 0.9), transparent),
-                radial-gradient(1px 1px at 230px 80px, #fff, transparent),
-                radial-gradient(2px 2px at 300px 150px, rgba(255, 255, 255, 0.7), transparent),
-                radial-gradient(1px 1px at 370px 50px, #fff, transparent),
-                radial-gradient(2px 2px at 450px 180px, rgba(255, 255, 255, 0.8), transparent),
-                radial-gradient(1px 1px at 520px 100px, #fff, transparent),
-                radial-gradient(2px 2px at 600px 60px, rgba(255, 255, 255, 0.9), transparent),
-                radial-gradient(1px 1px at 680px 200px, #fff, transparent),
-                radial-gradient(2px 2px at 750px 130px, rgba(255, 255, 255, 0.7), transparent);
-            background-size: 800px 250px;
-            animation: twinkle 8s ease-in-out infinite;
-            opacity: 0.8;
+            background: repeating-linear-gradient(0deg,
+                    rgba(0, 0, 0, 0.15) 0px,
+                    rgba(0, 0, 0, 0.15) 1px,
+                    transparent 1px,
+                    transparent 3px);
+            z-index: 15;
+            pointer-events: none;
+            animation: scanlineFlicker 0.1s infinite;
         }
 
-        @keyframes twinkle {
+        @keyframes scanlineFlicker {
+
+            0%,
+            100% {
+                opacity: 0.8;
+            }
+
+            50% {
+                opacity: 0.9;
+            }
+        }
+
+        /* Animated blood-red vignette pulse */
+        #intro-screen::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(ellipse at center, transparent 40%, rgba(139, 0, 0, 0.3) 100%);
+            z-index: 2;
+            pointer-events: none;
+            animation: vignettePulse 4s ease-in-out infinite;
+        }
+
+        @keyframes vignettePulse {
 
             0%,
             100% {
@@ -243,7 +261,7 @@
             }
         }
 
-        /* Scroll container - simple vertical scroll, no perspective distortion */
+        /* Scroll container - simple vertical scroll */
         .intro-container {
             position: absolute;
             top: 100%;
@@ -251,7 +269,7 @@
             width: 85%;
             max-width: 700px;
             transform: translateX(-50%);
-            animation: introScroll 90s linear forwards;
+            animation: introScroll 60s linear forwards;
             z-index: 5;
             padding: 0 20px;
             box-sizing: border-box;
@@ -259,34 +277,34 @@
 
         @keyframes introScroll {
             0% {
-                top: 100%;
+                top: 70%;
             }
 
             100% {
-                top: -320%;
+                top: -120%;
             }
         }
 
-        /* Top fade gradient */
+        /* Top fade gradient - blood red */
         .intro-fade-top {
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
             height: 200px;
-            background: linear-gradient(to bottom, #000 0%, #000 30%, transparent 100%);
+            background: linear-gradient(to bottom, #0a0000 0%, #0a0000 30%, transparent 100%);
             z-index: 10;
             pointer-events: none;
         }
 
-        /* Bottom fade */
+        /* Bottom fade - blood red */
         .intro-fade-bottom {
             position: absolute;
             bottom: 0;
             left: 0;
             right: 0;
-            height: 50px;
-            background: linear-gradient(to top, #000, transparent);
+            height: 80px;
+            background: linear-gradient(to top, #0a0000, transparent);
             z-index: 10;
             pointer-events: none;
         }
@@ -295,63 +313,80 @@
             color: #d9a066;
             font-family: 'Georgia', serif;
             font-size: 16px;
-            line-height: 1.6;
+            line-height: 1.7;
             text-align: center;
             padding: 0 20px;
         }
 
         .intro-text h1 {
-            font-size: 28px;
+            font-size: 32px;
             text-align: center;
-            color: #fff;
+            color: #d9a066;
             margin-bottom: 10px;
-            text-shadow: 0 0 20px #d9a066;
+            text-shadow: 0 0 10px rgba(217, 160, 102, 0.4);
+            letter-spacing: 3px;
+        }
+
+        @keyframes glowPulse {
+
+            0%,
+            100% {
+                text-shadow: 0 0 10px rgba(217, 160, 102, 0.4);
+            }
+
+            50% {
+                text-shadow: 0 0 15px rgba(217, 160, 102, 0.5);
+            }
         }
 
         .intro-text h2 {
             font-size: 14px;
             text-align: center;
-            color: #888;
+            color: #8b4513;
             margin-bottom: 30px;
             font-style: italic;
         }
 
         .intro-text p {
-            margin-bottom: 15px;
+            margin-bottom: 18px;
         }
 
         .intro-text .emphasis {
-            color: #fff;
+            color: #ff6b6b;
             font-weight: bold;
         }
 
         .intro-text .dramatic {
             text-align: center;
-            font-size: 20px;
-            color: #fff;
-            margin: 20px 0;
+            font-size: 22px;
+            color: #b22222;
+            margin: 25px 0;
+            font-weight: bold;
+            letter-spacing: 2px;
         }
 
         .intro-text .card-text {
             text-align: center;
             font-style: italic;
-            color: #888;
+            color: #666;
             margin: 30px 0;
         }
 
         .intro-text .final-title {
-            font-size: 24px;
+            font-size: 28px;
             text-align: center;
             color: #d9a066;
-            margin-top: 40px;
-            text-shadow: 0 0 15px #d9a066;
+            margin-top: 50px;
+            text-shadow: 0 0 10px rgba(217, 160, 102, 0.4);
+            letter-spacing: 4px;
         }
 
         .intro-text .tagline {
             text-align: center;
-            font-size: 16px;
-            color: #fff;
-            margin-top: 15px;
+            font-size: 18px;
+            color: #b22222;
+            margin-top: 20px;
+            font-weight: bold;
         }
 
         .intro-start-prompt {
@@ -361,26 +396,21 @@
             transform: translate(-50%, -50%);
             text-align: center;
             z-index: 100;
+            padding: 40px;
         }
 
         .intro-start-prompt h2 {
             color: #d9a066;
-            font-size: 28px;
+            font-size: 32px;
             margin-bottom: 20px;
-            text-shadow: 0 0 15px #d9a066;
+            text-shadow: 0 0 10px rgba(217, 160, 102, 0.4);
+            letter-spacing: 3px;
         }
 
         .intro-start-prompt p {
             color: #fff;
-            font-size: 18px;
+            font-size: 20px;
             animation: blink 1s infinite;
-        }
-
-        .intro-text .tagline {
-            text-align: center;
-            font-size: 18px;
-            color: #fff;
-            margin-top: 20px;
         }
 
         .intro-skip {
@@ -390,29 +420,7 @@
             color: #555;
             font-size: 10px;
             animation: blink 2s infinite;
-        }
-
-        /* Fade gradient at top and bottom */
-        #intro-screen::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 100px;
-            background: linear-gradient(to bottom, #000, transparent);
-            z-index: 10;
-        }
-
-        #intro-screen::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 150px;
-            background: linear-gradient(to top, #000, transparent);
-            z-index: 10;
+            z-index: 20;
         }
 
         .hidden {
@@ -777,81 +785,30 @@
                         <h2>A Chronicle of Wood, Will, and Warped Taste</h2>
 
                         <p class="dramatic">In the year 2025,</p>
-                        <p>As the Mississippi rolled past St. Louis and the city hummed with quiet industry, something
-                            sacred was being lost.</p>
+                        <p>The <span class="emphasis">Interior Design Cartel</span> declared war on durability. They
+                            replaced craftsmanship with 'fast furniture'—flimsy, soulless, and impossible to repair.</p>
 
-                        <p>Not all at once. Not loudly. But carefully, deliberately, under the glow of track lighting
-                            and polished concrete floors.</p>
+                        <p>St. Louis fell first. Then the world.</p>
 
-                        <p class="emphasis">Craftsmanship was being replaced.</p>
-
-                        <p>Once, St. Louis was a city of hands. Bricklayers, machinists, woodworkers. People who
-                            understood weight and balance because they lived with both. Things were built to last
-                            because they had to. Furniture bore scars, stories, and the unmistakable mark of the person
-                            who made it.</p>
-
-                        <p class="dramatic">And at the center of it all was Sandy.</p>
-
-                        <p>An eccentric, brilliant furniture artisan whose workshop smelled of oak, glue, and old jazz
-                            records. Sandy didn't design for magazines. She built tables meant to be used, leaned on,
-                            argued over, and inherited. Every joint was deliberate. Every surface told the truth about
-                            the wood it came from.</p>
-
-                        <p>Her tables didn't just hold objects. <span class="emphasis">They held lives.</span></p>
-
-                        <p>That made her a problem.</p>
-
-                        <p>The <span class="emphasis">Interior Design Cartel</span> had been expanding quietly. A
-                            syndicate of tastemakers, corporate consultants, and trend forecasters who believed that
-                            permanence was bad for business. They thrived on churn. On seasonality. On selling the
-                            illusion of meaning while stripping it away.</p>
-
-                        <p>To them, Sandy's work was dangerous. It reminded people that things could matter.</p>
-
-                        <p class="dramatic">They came in the night.</p>
-
-                        <p>No alarms. No witnesses. Just precision. Her workshop was gutted. Masterpiece tables vanished
-                            without a trace. Blueprints were shredded. Tools destroyed. The radio smashed mid song.</p>
-
-                        <p>All that remained was a single card, placed neatly on her workbench:</p>
-
-                        <p class="card-text">"Form follows function."</p>
-
-                        <p class="emphasis">Sandy knew better.</p>
-
-                        <p>She followed the trail through abandoned showrooms and vacant lofts, through shell companies
-                            and fake storefronts, until it led to a place most people pretended not to notice.</p>
-
-                        <p class="dramatic">An office tower downtown.</p>
-
-                        <p>By day, it housed design firms, branding agencies, and "creative departments." By night, it
-                            descended into something else entirely.</p>
-
-                        <p>A vertical labyrinth of departments, each more absurd than the last. A corporate dungeon
-                            where stolen craftsmanship was hoarded, cataloged, and hidden away behind locked elevators
-                            and armed interior decorators.</p>
-
-                        <p class="emphasis">Her tables were down there.</p>
-
-                        <p class="dramatic">Sandy didn't hesitate.</p>
-
-                        <p>She strapped on what she could salvage. She stepped inside the tower. And the doors sealed
-                            shut behind her.</p>
-
-                        <p>Each floor was a trial. Each hallway a test of resolve. Each enemy a reminder of what happens
-                            when taste replaces soul.</p>
-
-                        <p class="emphasis">But Sandy pressed on.</p>
-
-                        <p>Because tables are not disposable. Because craft is not a trend. Because some things must be
-                            reclaimed by force.</p>
-
-                        <p class="dramatic">Collect the tables.<br>Clear the floors.<br>Descend deeper into the dungeon.
+                        <p>Grandmothers wept as their oak dining sets were seized and replaced by honeycomb cardboard.
                         </p>
 
-                        <p>This is not about design.</p>
+                        <p class="dramatic">But one artisan refused to fold.</p>
 
-                        <p class="emphasis">This is about legacy.</p>
+                        <p class="emphasis">Sandy.</p>
+
+                        <p>She didn't design for trends. She built tables that could survive a nuclear winter. When they
+                            raided her workshop, they made one fatal mistake:</p>
+
+                        <p class="dramatic">They left her alive.</p>
+
+                        <p>Tonight, she enters their headquarters. A vertical dungeon of beige carpet and particle
+                            board.</p>
+
+                        <p>Her mission:</p>
+
+                        <p class="emphasis">Reclaim the tables.<br>Splatter the critics.<br>Remind them what 'solid
+                            wood' feels like.</p>
 
                         <p class="final-title">SANDY'S TABLE QUEST</p>
 
@@ -862,7 +819,6 @@
                     <h2>SANDY'S TABLE QUEST</h2>
                     <p>PRESS ENTER TO BEGIN</p>
                 </div>
-                <div class="intro-skip">PRESS ENTER OR SPACE TO SKIP</div>
             </div>
 
             <!-- HD LOADING SCREEN -->
